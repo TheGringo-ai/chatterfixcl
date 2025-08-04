@@ -305,26 +305,22 @@ const SimpleWorkOrderForm: React.FC<SimpleWorkOrderFormProps> = ({
       </div>
 
       {/* Footer Actions */}
-      <div className="bg-gray-50 px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center space-x-4 text-sm text-gray-600">
-          <span>ID: {formData.id}</span>
-        </div>
-        <div className="flex space-x-3">
-          <button
-            onClick={onCancel}
-            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400"
-          >
-            Close
-          </button>
-          {isEditing && (
-            <button
-              onClick={handleSave}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-            >
-              Save Work Order
-            </button>
-          )}
-        </div>
+      <div className="bg-gray-50 px-6 py-4 flex justify-end items-center space-x-3">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={handleSave}
+          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          <Save className="w-4 h-4 mr-2" />
+          Save Work Order
+        </button>
       </div>
     </div>
   );

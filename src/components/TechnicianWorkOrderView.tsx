@@ -32,6 +32,10 @@ const TechnicianWorkOrderView: React.FC<TechnicianWorkOrderViewProps> = ({
   const [notes, setNotes] = useState('');
   const [resolution, setResolution] = useState('');
 
+  const handleCancelCreate = () => {
+    setShowCreateForm(false);
+  };
+
   // Get technician's work orders
   const technicianWorkOrders = workOrders.filter(wo => 
     wo.assignedTo === currentTechnician || wo.technician === currentTechnician

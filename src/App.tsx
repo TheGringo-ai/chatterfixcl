@@ -214,6 +214,10 @@ const ChatterFixApp: React.FC = () => {
             setShowManagerDemo(false);
           }}
           onLogout={handleLogout}
+          onEnterApp={() => {
+            setShowLandingPage(false);
+            setShowManagerDemo(false);
+          }}
         />
       </ErrorBoundary>
     );
