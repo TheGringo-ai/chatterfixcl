@@ -7,12 +7,14 @@ import {
 import DemoChat from './components/DemoChat';
 
 interface LandingPageProps {
+  onManagerDemo: () => void;
+  onTechnicianDemo: () => void;
+  onLogout: () => void;
   onEnterApp: () => void;
-  onEnterDemo?: () => void;
   getAIResponse?: (prompt: string) => Promise<string>;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterDemo, getAIResponse }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onManagerDemo, onTechnicianDemo, onLogout, onEnterApp, getAIResponse }) => {
   const [assets, setAssets] = useState(100);
   const [hours, setHours] = useState(500);
   const [rate, setRate] = useState(75);
@@ -35,12 +37,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterDemo, getA
               </div>
               <span className="text-xl font-bold text-gray-900">ChatterFix</span>
             </div>
-            <button
-              onClick={onEnterDemo}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200"
-            >
-              Try Demo
-            </button>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={onManagerDemo}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200"
+              >
+                Manager Demo
+              </button>
+              <button
+                onClick={onTechnicianDemo}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg font-medium transition-colors duration-200"
+              >
+                Technician Demo
+              </button>
+            </div>
           </div>
         </div>
       </nav>
@@ -87,7 +97,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterDemo, getA
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <button
-                onClick={onEnterDemo}
+                onClick={onManagerDemo}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2"
               >
                 <Play className="w-5 h-5" />
@@ -496,7 +506,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterDemo, getA
 
           <div className="mb-8">
             <button
-              onClick={onEnterDemo}
+              onClick={onManagerDemo}
               className="bg-white text-blue-600 hover:bg-gray-50 font-bold px-12 py-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-lg"
             >
               Try Live Demo Now - Free

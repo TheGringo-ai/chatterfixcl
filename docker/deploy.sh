@@ -5,6 +5,9 @@
 
 set -e
 
+# Change to the script's directory to ensure context is correct
+cd "$(dirname "$0")"
+
 # Configuration
 PROJECT_ID="${1:-fredfix}"
 REGION="${2:-us-central1}"
@@ -59,7 +62,7 @@ gcloud firestore databases create --region=${REGION} 2>/dev/null || echo "Firest
 
 # Build the Docker image using Google Cloud Build (no local Docker required)
 echo "� Building Docker image with Google Cloud Build..."
-gcloud builds submit --tag ${IMAGE_NAME} .
+gcloud builds submit --tag ${IMAGE_NAME} . --project=${PROJECT_ID}
 
 # Deploy to Cloud Run
 echo "🚀 Deploying to Cloud Run..."

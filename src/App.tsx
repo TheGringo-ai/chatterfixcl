@@ -204,13 +204,16 @@ const ChatterFixApp: React.FC = () => {
   if (showLandingPage) {
     return (
       <ErrorBoundary>
-        <LandingPage 
-          onEnterApp={() => setShowLandingPage(false)} 
-          onEnterDemo={() => {
+        <LandingPage
+          onManagerDemo={() => {
             setShowLandingPage(false);
             setShowManagerDemo(true);
           }}
-          getAIResponse={getAIResponse}
+          onTechnicianDemo={() => {
+            setShowLandingPage(false);
+            setShowManagerDemo(false);
+          }}
+          onLogout={handleLogout}
         />
       </ErrorBoundary>
     );
@@ -320,7 +323,7 @@ const ChatterFixApp: React.FC = () => {
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  {view === 'ocr' ? 'OCR Scanner' : view === 'inventory' ? 'Parts Inventory' : view === 'technician' ? 'Technician View' : view}
+                  {view === 'ocr' ? 'OCR Scanner' : view === 'inventory' ? 'Parts Inventory' : view === 'technician' ? 'Technician Dashboard' : view}
                 </button>
               ))}
             </div>
