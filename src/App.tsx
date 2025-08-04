@@ -41,22 +41,16 @@ const ChatterFixApp: React.FC = () => {
     setupDate: new Date().toISOString().split('T')[0]
   });
   const [isProcessingAI, setIsProcessingAI] = useState(false);
-  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
-  // Load data on mount
+    // Load data on mount
   useEffect(() => {
     const loadData = async () => {
       setIsLoadingData(true);
       try {
-        const savedData = localStorage.getItem('chatterfix-data');
-        if (savedData) {
-          const data: CompanyData = JSON.parse(savedData);
-          setAssets(data.assets || {});
-          setInventory(data.inventory || {});
-          setWorkOrders(data.workOrders || []);
-          setCompanyInfo(data.companyInfo || companyInfo);
-        } else {
-          loadDemoData();
+        const storageApiUrl = process.env.REACT_APP_STORAGE_API_URL || process.env.REACT_APP_LLAMA_API_URL;
+        if (storageApiUrl) {
+          // Load data from API
         }
       } catch (err) {
         handleError(err);
@@ -68,6 +62,9 @@ const ChatterFixApp: React.FC = () => {
 
     if (isAuthenticated) {
       loadData();
+    } else {
+      // For unauthenticated users, set loading to false immediately
+      setIsLoadingData(false);
     }
   }, [isAuthenticated]);
 
