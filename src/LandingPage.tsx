@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { Bot, Zap, DollarSign, Clock, TrendingUp, Shield, Users, ChevronRight, Star, CheckCircle, ArrowRight, Play } from 'lucide-react';
+import { 
+  Bot, Shield, TrendingUp, Clock, ArrowRight, Star, 
+  MessageCircle, Zap, Users, BarChart3, Wrench, 
+  DollarSign, Target, Lightbulb, Play, CheckCircle 
+} from 'lucide-react';
+import DemoChat from './components/DemoChat';
 
 interface LandingPageProps {
   onEnterApp: () => void;
@@ -9,6 +14,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
   const [assets, setAssets] = useState(100);
   const [hours, setHours] = useState(500);
   const [rate, setRate] = useState(75);
+  const [showDemoChat, setShowDemoChat] = useState(false);
 
   // Calculate ROI dynamically
   const timeSavings = Math.round(hours * 12 * rate * 0.75); // 75% efficiency improvement
@@ -106,6 +112,31 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Learn More Section */}
+      <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
+            Would you like to learn more?
+          </h2>
+          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            Have questions about ChatterFix? Want to know how it can transform your maintenance operations? 
+            Our AI agent is here to help with technical questions about equipment, SQF industry practices, 
+            predictive maintenance, and more.
+          </p>
+          <button
+            onClick={() => setShowDemoChat(true)}
+            className="bg-white text-blue-600 hover:bg-gray-50 font-bold px-10 py-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-3 mx-auto text-lg"
+          >
+            <MessageCircle className="w-6 h-6" />
+            <span>Talk to Our Agent</span>
+            <Bot className="w-6 h-6" />
+          </button>
+          <p className="text-blue-200 text-sm mt-4">
+            Get instant answers about maintenance best practices, equipment troubleshooting, and platform features
+          </p>
         </div>
       </section>
 
@@ -465,6 +496,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           </div>
         </div>
       </section>
+      
+      {/* DemoChat Widget */}
+      {showDemoChat && (
+        <DemoChat 
+          onClose={() => setShowDemoChat(false)}
+        />
+      )}
     </div>
   );
 };

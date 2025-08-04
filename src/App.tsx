@@ -43,7 +43,7 @@ const ChatterFixApp: React.FC = () => {
   const [isProcessingAI, setIsProcessingAI] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
 
-    // Load data on mount
+  // Load data on mount - only for authenticated users
   useEffect(() => {
     const loadData = async () => {
       setIsLoadingData(true);
@@ -52,6 +52,8 @@ const ChatterFixApp: React.FC = () => {
         if (storageApiUrl) {
           // Load data from API
         }
+        // Load demo data for now
+        loadDemoData();
       } catch (err) {
         handleError(err);
         loadDemoData();
@@ -60,13 +62,14 @@ const ChatterFixApp: React.FC = () => {
       }
     };
 
-    if (isAuthenticated) {
+    // Only load data if user is authenticated and auth loading is complete
+    if (isAuthenticated && !authLoading) {
       loadData();
-    } else {
-      // For unauthenticated users, set loading to false immediately
+    } else if (!authLoading) {
+      // If not authenticated and auth loading is complete, make sure we're not stuck loading
       setIsLoadingData(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, authLoading, handleError]);
 
   // Save data whenever it changes
   useEffect(() => {
@@ -125,14 +128,26 @@ const ChatterFixApp: React.FC = () => {
     setIsProcessingAI(true);
     
     try {
-      const response = await fetch(`${llamaApiUrl}/chat`, {
+      // Use OpenAI-compatible endpoint for your Llama API
+      const response = await fetch(`${llamaApiUrl}/v1/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: prompt,
-          context: `Current assets: ${Object.keys(assets).join(', ')}. Current inventory: ${Object.keys(inventory).join(', ')}.`
+          model: "llama3.2:1b",
+          messages: [
+            {
+              role: "system", 
+              content: "You are ChatterFix AI, an expert assistant for maintenance, asset management, and work orders. Provide helpful, practical advice for equipment maintenance, troubleshooting, and asset management. Keep responses concise and actionable."
+            },
+            {
+              role: "user", 
+              content: prompt
+            }
+          ],
+          max_tokens: 200,
+          temperature: 0.7
         })
       });
 
@@ -141,7 +156,13 @@ const ChatterFixApp: React.FC = () => {
       }
 
       const data = await response.json();
-      return data.response || 'Sorry, I could not process your request.';
+      
+      // Extract response from OpenAI-compatible format
+      const aiResponse = data.choices?.[0]?.message?.content || 'Sorry, I could not process your request.';
+      return aiResponse.trim();
+    } catch (error) {
+      console.error('Llama API Error:', error);
+      return 'Sorry, I encountered an error while processing your request. Please try again.';
     } finally {
       setIsProcessingAI(false);
     }
@@ -171,18 +192,18 @@ const ChatterFixApp: React.FC = () => {
     setShowLandingPage(true);
   };
 
-  // Show loading spinner while checking auth
-  if (authLoading || isLoadingData) {
-    return <LoadingSpinner fullScreen message="Loading ChatterFix..." />;
-  }
-
-  // Show landing page if not authenticated and landing page is active
-  if (!isAuthenticated && showLandingPage) {
+  // Show landing page first - don't wait for auth loading
+  if (showLandingPage) {
     return (
       <ErrorBoundary>
         <LandingPage onEnterApp={() => setShowLandingPage(false)} />
       </ErrorBoundary>
     );
+  }
+
+  // Show loading spinner only if we're still checking auth AND user clicked enter app
+  if (authLoading) {
+    return <LoadingSpinner fullScreen message="Loading ChatterFix..." />;
   }
 
   // Show login if not authenticated
@@ -192,6 +213,11 @@ const ChatterFixApp: React.FC = () => {
         <Login onSuccess={() => setShowOnboarding(true)} />
       </ErrorBoundary>
     );
+  }
+
+  // Show loading spinner for authenticated users while loading data
+  if (isLoadingData) {
+    return <LoadingSpinner fullScreen message="Loading your data..." />;
   }
 
   // Show onboarding for new users
