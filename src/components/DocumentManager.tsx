@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Upload, FileText, Image, Download, Eye, Tag, Search, Filter, Plus, X, File, BookOpen, Wrench, AlertTriangle } from 'lucide-react';
+import { Upload, FileText, Image, Download, Eye, Search, Plus, X, File, BookOpen, Wrench, AlertTriangle } from 'lucide-react';
 
 interface Document {
   id: string;

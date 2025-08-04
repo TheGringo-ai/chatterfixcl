@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Settings } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Settings, HelpCircle } from 'lucide-react';
 import './App.css';
 import { Toaster } from 'react-hot-toast';
 
@@ -19,18 +19,43 @@ import ChatInterface from './components/Chat/ChatInterface';
 import TechnicianWorkOrderView from './components/TechnicianWorkOrderView';
 import WorkOrderList from './components/WorkOrder/WorkOrderList';
 import AIChat from './components/AIChat';
+import OnboardingGuide from './components/OnboardingGuide';
 
 // Contexts and Hooks
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useErrorHandler } from './hooks/useErrorHandler';
+import { useOnboarding } from './hooks/useOnboarding';
 
 // Types
 import { Asset, WorkOrder, ChatMessage, InventoryItem, CompanyData } from './types';
 
+const onboardingSteps = [
+    {
+      title: 'Welcome to ChatterFix!',
+      content: 'This guide will walk you through the key AI features. You can create work orders just by talking or typing.',
+      targetId: 'voice-interface-container',
+    },
+    {
+      title: 'AI-Powered Voice and Chat',
+      content: 'Use this chat window to interact with our AI. Try creating a work order by typing something like: "Create a work order to fix the conveyor belt, it is making a loud noise."',
+      targetId: 'ai-chat-container',
+    },
+    {
+      title: 'Technician View',
+      content: 'Technicians can view and manage their assigned work orders here. They can update the status, add notes, and upload photos.',
+      targetId: 'technician-view-nav',
+    },
+    {
+      title: 'Manager Dashboard',
+      content: 'If you are a manager, you can get a full overview of all operations from the Manager Dashboard, accessible from the landing page.',
+      targetId: 'back-to-landing-button',
+    },
+];
+
 // Main App Component
 const ChatterFixApp: React.FC = () => {
   const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth();
-  const { error, handleError, clearError, withErrorHandler } = useErrorHandler();
+  const { error, handleError, clearError } = useErrorHandler();
   
   const [showLandingPage, setShowLandingPage] = useState(true);
   const [showManagerDemo, setShowManagerDemo] = useState(false);
@@ -41,129 +66,117 @@ const ChatterFixApp: React.FC = () => {
   const [currentView, setCurrentView] = useState<string>('voice');
   const [assets, setAssets] = useState<Record<string, Asset>>({});
   const [inventory, setInventory] = useState<Record<string, InventoryItem>>({});
-  const [companyInfo, setCompanyInfo] = useState({
+  const [companyInfo] = useState({
     name: 'Demo Company',
     location: 'Demo Location',
     setupDate: new Date().toISOString().split('T')[0]
   });
   const [isProcessingAI, setIsProcessingAI] = useState(false);
-  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
-  // Load data on mount - only for authenticated users
+  const {
+    isOnboardingActive,
+    currentStep,
+    nextStep,
+    prevStep,
+    finishOnboarding,
+    startOnboarding,
+    hasCompletedOnboarding,
+  } = useOnboarding(onboardingSteps.length);
+
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoadingData(true);
-      try {
-        const storageApiUrl = process.env.REACT_APP_STORAGE_API_URL || process.env.REACT_APP_LLAMA_API_URL;
-        if (storageApiUrl) {
-          // Load data from API
-        }
-        // Load demo data for now
-        loadDemoData();
-      } catch (err) {
-        handleError(err);
-        loadDemoData();
-      } finally {
-        setIsLoadingData(false);
-      }
-    };
-
-    // Only load data if user is authenticated and auth loading is complete
-    if (isAuthenticated && !authLoading) {
-      loadData();
-    } else if (!authLoading) {
-      // If not authenticated and auth loading is complete, make sure we're not stuck loading
-      setIsLoadingData(false);
+    if (isAuthenticated && !hasCompletedOnboarding) {
+      setTimeout(() => startOnboarding(), 500);
     }
-  }, [isAuthenticated, authLoading, handleError]);
+  }, [isAuthenticated, hasCompletedOnboarding, startOnboarding]);
 
-  // Save data whenever it changes
-  useEffect(() => {
-    if (isAuthenticated && !isLoadingData) {
-      const data: CompanyData = {
-        assets,
-        inventory,
-        workOrders,
-        companyInfo
-      };
-      try {
-        localStorage.setItem('chatterfix-data', JSON.stringify(data));
-      } catch (err) {
-        console.error('Failed to save data:', err);
-      }
-    }
-  }, [assets, inventory, workOrders, companyInfo, isAuthenticated, isLoadingData]);
-
-  const loadDemoData = () => {
+  const loadDemoData = useCallback(() => {
     const demoAssets: Record<string, Asset> = {
-      'multivac ais': {
-        id: 'MV-AIS-001',
-        name: 'Multivac AIS Packaging Line',
-        location: 'Production Floor A',
-        status: 'Running',
-        lastMaintenance: '2024-07-15'
-      },
-      'conveyor belt 3': {
-        id: 'CB-003',
-        name: 'Conveyor Belt #3',
-        location: 'Assembly Line B',
-        status: 'Warning',
-        lastMaintenance: '2024-07-20'
-      }
+      'multivac ais': { id: 'MV-AIS-001', name: 'Multivac AIS Packaging Line', location: 'Production Floor A', status: 'Running', lastMaintenance: '2024-07-15' },
+      'conveyor belt 3': { id: 'CB-003', name: 'Conveyor Belt #3', location: 'Assembly Line B', status: 'Warning', lastMaintenance: '2024-07-20' }
     };
-
     const demoInventory: Record<string, InventoryItem> = {
       'vacuum pump seal': { stock: 5, location: 'Shelf A-12', cost: 45.50 },
       'heating element': { stock: 2, location: 'Shelf B-08', cost: 120.00 },
       'sealing bar': { stock: 0, location: 'Shelf A-15', cost: 89.99, orderNeeded: true },
       'conveyor roller': { stock: 8, location: 'Shelf C-03', cost: 25.30 }
     };
-
     setAssets(demoAssets);
     setInventory(demoInventory);
-  };
+    setWorkOrders([]);
+  }, []);
 
-  // Constants
-  const apiUrl = process.env.REACT_APP_STORAGE_API_URL || 'https://chatterfix-storage-api-psycl7nhha-uc.a.run.app';
-
-  // AI Response Handler (wrapped with error handler)
-  const getAIResponse = async (
-    prompt: string, 
-    context?: string,
-    workOrderId?: string,
-    assetId?: string
-  ): Promise<string> => {
-    try {
-      const response = await fetch(`${apiUrl}/ai-assistant`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt,
-          context,
-          workOrderId,
-          assetId
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoadingData(true);
+      try {
+        const savedData = localStorage.getItem('chatterfix-data');
+        if (savedData) {
+          const parsedData: CompanyData = JSON.parse(savedData);
+          setAssets(parsedData.assets || {});
+          setInventory(parsedData.inventory || {});
+          setWorkOrders(parsedData.workOrders || []);
+        } else {
+          loadDemoData();
+        }
+      } catch (err) {
+        handleError(new Error('Failed to load application data.'));
+        loadDemoData();
+      } finally {
+        setIsLoadingData(false);
       }
+    };
 
+    if (isAuthenticated) {
+      loadData();
+    } else {
+      setIsLoadingData(false);
+    }
+  }, [isAuthenticated, handleError, loadDemoData]);
+
+  useEffect(() => {
+    if (isAuthenticated && !isLoadingData) {
+      const data: CompanyData = { assets, inventory, workOrders, companyInfo };
+      try {
+        localStorage.setItem('chatterfix-data', JSON.stringify(data));
+      } catch (err) {
+        console.error('Failed to save data:', err);
+        handleError(new Error('Could not save your changes.'));
+      }
+    }
+  }, [assets, inventory, workOrders, companyInfo, isAuthenticated, isLoadingData, handleError]);
+
+  const apiUrl = process.env.REACT_APP_LLAMA_API_URL || 'http://localhost:8000';
+
+  const getAIResponse = async (prompt: string, context?: string): Promise<string> => {
+    setIsProcessingAI(true);
+    try {
+      const response = await fetch(`${apiUrl}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, context }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
       return data.response || 'Sorry, I could not process your request.';
-    } catch (error) {
-      console.error('Error getting AI response:', error);
+    } catch (error: any) {
+      handleError(error);
       return 'Sorry, I\'m having trouble connecting right now. Please try again.';
+    } finally {
+      setIsProcessingAI(false);
     }
-  };  // Work Order Handlers
-  const handleWorkOrderCreate = (workOrder: any) => {
-    setActiveWorkOrder(workOrder);
-    setWorkOrders(prev => [workOrder, ...prev]);
   };
 
-  const handleWorkOrderUpdate = (updatedWorkOrder: any) => {
+  const handleWorkOrderCreate = (workOrder: WorkOrder) => {
+    const newWorkOrder = { ...workOrder, id: `WO-${Date.now()}`};
+    setWorkOrders(prev => [newWorkOrder, ...prev]);
+    setActiveWorkOrder(newWorkOrder);
+  };
+
+  const handleWorkOrderUpdate = (updatedWorkOrder: WorkOrder) => {
     setWorkOrders(prev => 
       prev.map(wo => wo.id === updatedWorkOrder.id ? updatedWorkOrder : wo)
     );
@@ -179,6 +192,12 @@ const ChatterFixApp: React.FC = () => {
   const handleLogout = async () => {
     await logout();
     setShowLandingPage(true);
+    setWorkOrders([]);
+    setAssets({});
+    setInventory({});
+    setChatHistory([]);
+    setActiveWorkOrder(null);
+    setCurrentView('voice');
   };
 
   // Show landing page first - don't wait for auth loading
@@ -207,27 +226,13 @@ const ChatterFixApp: React.FC = () => {
               <div className="flex justify-between items-center h-16">
                 <div className="flex items-center">
                   <h1 className="text-xl font-bold text-gray-900">ChatterFix Demo</h1>
-                  <span className="ml-3 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
-                    Manager Dashboard Demo
-                  </span>
+                  <span className="ml-3 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">Manager Dashboard Demo</span>
                 </div>
                 <div className="flex items-center space-x-4">
-                  <button
-                    onClick={() => {
-                      setShowManagerDemo(false);
-                      setShowLandingPage(true);
-                    }}
-                    className="text-sm text-gray-500 hover:text-gray-700"
-                  >
+                  <button id="back-to-landing-button" onClick={() => { setShowManagerDemo(false); setShowLandingPage(true); }} className="text-sm text-gray-500 hover:text-gray-700">
                     ← Back to Landing
                   </button>
-                  <button
-                    onClick={() => {
-                      setShowManagerDemo(false);
-                      setShowLandingPage(false);
-                    }}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                  >
+                  <button onClick={() => { setShowManagerDemo(false); setShowLandingPage(false); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                     Try Full App with Chat
                   </button>
                 </div>
@@ -241,34 +246,28 @@ const ChatterFixApp: React.FC = () => {
   }
 
   // Show loading spinner only if we're still checking auth AND user clicked enter app
-  if (authLoading) {
-    return <LoadingSpinner fullScreen message="Loading ChatterFix..." />;
+  if (authLoading || isLoadingData) {
+    return <LoadingSpinner fullScreen message={authLoading ? "Authenticating..." : "Loading your data..."} />;
   }
 
   // Show login if not authenticated
   if (!isAuthenticated) {
     return (
       <ErrorBoundary>
-        <Login onSuccess={() => setShowOnboarding(true)} />
+        <Login onSuccess={() => {
+          const hasOnboarded = localStorage.getItem('chatterfix-onboarding-completed') === 'true';
+          if (!hasOnboarded) {
+              setShowOnboarding(true);
+          }
+        }} />
       </ErrorBoundary>
     );
   }
 
-  // Show loading spinner for authenticated users while loading data
-  if (isLoadingData) {
-    return <LoadingSpinner fullScreen message="Loading your data..." />;
-  }
-
-  // Show onboarding for new users
-  if (showOnboarding && !localStorage.getItem('chatterfix-onboarded')) {
+  if (showOnboarding) {
     return (
       <ErrorBoundary>
-        <OnboardingPage 
-          onComplete={() => {
-            setShowOnboarding(false);
-            localStorage.setItem('chatterfix-onboarded', 'true');
-          }} 
-        />
+        <OnboardingPage onComplete={() => { setShowOnboarding(false); localStorage.setItem('chatterfix-onboarding-completed', 'true'); }} />
       </ErrorBoundary>
     );
   }
@@ -276,28 +275,30 @@ const ChatterFixApp: React.FC = () => {
   // Main app interface
   return (
     <ErrorBoundary>
+       <OnboardingGuide
+        steps={onboardingSteps}
+        currentStep={currentStep}
+        onNext={nextStep}
+        onPrev={prevStep}
+        onFinish={finishOnboarding}
+        isActive={isOnboardingActive}
+      />
       <div className="min-h-screen bg-gray-100">
-        {/* Header */}
         <header className="bg-white shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center">
                 <h1 className="text-xl font-bold text-gray-900">ChatterFix</h1>
-                <span className="ml-3 text-sm text-gray-500">
-                  Welcome, {user?.name || 'User'}
-                </span>
+                <span className="ml-3 text-sm text-gray-500">Welcome, {user?.name || 'User'}</span>
               </div>
               <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => setCurrentView('settings')}
-                  className="p-2 text-gray-500 hover:text-gray-700"
-                >
+                 <button onClick={startOnboarding} className="p-2 text-gray-500 hover:text-gray-700" title="Show help guide">
+                  <HelpCircle className="w-5 h-5" />
+                </button>
+                <button onClick={() => setCurrentView('settings')} className="p-2 text-gray-500 hover:text-gray-700">
                   <Settings className="w-5 h-5" />
                 </button>
-                <button
-                  onClick={handleLogout}
-                  className="text-sm text-gray-500 hover:text-gray-700"
-                >
+                <button onClick={handleLogout} className="text-sm text-gray-500 hover:text-gray-700">
                   Logout
                 </button>
               </div>
@@ -305,13 +306,13 @@ const ChatterFixApp: React.FC = () => {
           </div>
         </header>
 
-        {/* Navigation */}
         <nav className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex space-x-8">
               {['voice', 'technician', 'ocr', 'assets', 'inventory', 'documents'].map((view) => (
                 <button
                   key={view}
+                  id={view === 'technician' ? 'technician-view-nav' : `${view}-nav`}
                   onClick={() => setCurrentView(view)}
                   className={`py-2 px-1 border-b-2 font-medium text-sm capitalize ${
                     currentView === view
@@ -319,9 +320,7 @@ const ChatterFixApp: React.FC = () => {
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  {view === 'ocr' ? 'OCR Scanner' : 
-                   view === 'inventory' ? 'Parts Inventory' : 
-                   view === 'technician' ? 'Technician View' : view}
+                  {view === 'ocr' ? 'OCR Scanner' : view === 'inventory' ? 'Parts Inventory' : view === 'technician' ? 'Technician View' : view}
                 </button>
               ))}
             </div>
@@ -352,78 +351,31 @@ const ChatterFixApp: React.FC = () => {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {currentView === 'voice' && (
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-              <div className="xl:col-span-1 space-y-6">
-                <VoiceInterface
-                  assets={assets}
-                  activeWorkOrder={activeWorkOrder}
-                  onWorkOrderCreate={handleWorkOrderCreate}
-                  onWorkOrderUpdate={handleWorkOrderUpdate}
-                  onChatMessage={handleChatMessage}
-                  getAIResponse={getAIResponse}
-                />
-                <WorkOrderList
-                  workOrders={workOrders}
-                  activeWorkOrderId={activeWorkOrder?.id}
-                  onSelectWorkOrder={setActiveWorkOrder}
-                  onCreateWorkOrder={handleWorkOrderCreate}
-                  onUpdateWorkOrder={handleWorkOrderUpdate}
-                  getAIResponse={getAIResponse}
-                />
+              <div id="voice-interface-container" className="xl:col-span-1 space-y-6">
+                <VoiceInterface assets={assets} activeWorkOrder={activeWorkOrder} onWorkOrderCreate={handleWorkOrderCreate} onWorkOrderUpdate={handleWorkOrderUpdate} onChatMessage={handleChatMessage} getAIResponse={getAIResponse} />
+                <WorkOrderList workOrders={workOrders} activeWorkOrderId={activeWorkOrder?.id} onSelectWorkOrder={setActiveWorkOrder} onCreateWorkOrder={handleWorkOrderCreate} onUpdateWorkOrder={handleWorkOrderUpdate} getAIResponse={getAIResponse} />
               </div>
               <div className="xl:col-span-1">
-                <ChatInterface 
-                  messages={chatHistory} 
-                  isProcessing={isProcessingAI}
-                />
+                <ChatInterface messages={chatHistory} isProcessing={isProcessingAI} />
               </div>
-              <div className="xl:col-span-1">
-                <AIChat
-                  onWorkOrderCreate={handleWorkOrderCreate}
-                  getAIResponse={getAIResponse}
-                  context={activeWorkOrder ? `Active work order: ${activeWorkOrder.description || activeWorkOrder.title}` : 'Voice interface'}
-                  placeholder="Create work orders, ask questions, or get maintenance help..."
-                  title="Work Order Assistant"
-                />
+              <div id="ai-chat-container" className="xl:col-span-1">
+                <AIChat onWorkOrderCreate={handleWorkOrderCreate} getAIResponse={getAIResponse} context={activeWorkOrder ? `Active work order: ${activeWorkOrder.description || activeWorkOrder.title}` : 'Voice interface'} placeholder="Create work orders, ask questions, or get maintenance help..." title="Work Order Assistant" />
               </div>
             </div>
           )}
 
-          {currentView === 'technician' && (
-            <TechnicianWorkOrderView
-              workOrders={workOrders}
-              activeWorkOrder={activeWorkOrder}
-              onWorkOrderUpdate={handleWorkOrderUpdate}
-              onWorkOrderCreate={handleWorkOrderCreate}
-              currentTechnician={user?.name || 'Current Technician'}
-              getAIResponse={getAIResponse}
-            />
-          )}
+          {currentView === 'technician' && <TechnicianWorkOrderView workOrders={workOrders} activeWorkOrder={activeWorkOrder} onWorkOrderUpdate={handleWorkOrderUpdate} onWorkOrderCreate={handleWorkOrderCreate} currentTechnician={user?.name || 'Current Technician'} getAIResponse={getAIResponse} />}
 
           {currentView === 'ocr' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <OCRScanner
-                onChatMessage={handleChatMessage}
-                getAIResponse={getAIResponse}
-              />
-              <ChatInterface 
-                messages={chatHistory} 
-                isProcessing={isProcessingAI}
-              />
+              <OCRScanner onChatMessage={handleChatMessage} getAIResponse={getAIResponse} />
+              <ChatInterface messages={chatHistory} isProcessing={isProcessingAI} />
             </div>
           )}
 
-          {currentView === 'assets' && (
-            <AssetManager onAssetSelected={(asset) => console.log('Asset selected:', asset)} />
-          )}
-
-          {currentView === 'inventory' && (
-            <PartsInventory />
-          )}
-
-          {currentView === 'documents' && (
-            <DocumentManager assets={assets} />
-          )}
-
+          {currentView === 'assets' && <AssetManager onAssetSelected={(asset) => console.log('Asset selected:', asset)} />}
+          {currentView === 'inventory' && <PartsInventory />}
+          {currentView === 'documents' && <DocumentManager assets={assets} />}
           {currentView === 'settings' && (
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Settings</h2>
@@ -447,7 +399,6 @@ const ChatterFixApp: React.FC = () => {
   );
 };
 
-// Root App with Providers
 const App: React.FC = () => {
   return (
     <AuthProvider>

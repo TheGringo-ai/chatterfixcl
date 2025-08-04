@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Mic, MicOff, AlertCircle } from 'lucide-react';
 import LoadingSpinner from '../LoadingSpinner';
 import { Asset, WorkOrder, ChatMessage } from '../../types';
@@ -34,51 +34,68 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const handleVoiceCommand = useCallback(async (message: string) => {
+    setIsProcessing(true);
+    onChatMessage({ type: 'user', message, timestamp: new Date() });
+
+    try {
+      // Check for "start work on..." command
+      if (message.toLowerCase().startsWith('start work on')) {
+        const assetName = message.substring('start work on'.length).trim();
+        for (const assetKey in assets) {
+          if (assets.hasOwnProperty(assetKey) && assets[assetKey].name.toLowerCase() === assetName.toLowerCase()) {
+            const asset = assets[assetKey];
+            const newWorkOrder: WorkOrder = {
+              id: `WO-${Date.now()}`,
+              title: `Work on ${asset.name}`,
+              asset,
+              status: 'in-progress',
+              priority: 'medium',
+              createdAt: new Date().toISOString(),
+              assignedTo: 'Current User',
+              startTime: new Date(),
+            };
+            onWorkOrderCreate(newWorkOrder);
+            const aiResponse = await getAIResponse(`User is starting work on ${asset.name}. Message: "${message}". Provide troubleshooting guidance.`);
+            onChatMessage({ type: 'ai', message: aiResponse, timestamp: new Date() });
+            return;
+          }
+        }
+      }
+
+      // Default to general AI response
+      const aiResponse = await getAIResponse(message);
+      onChatMessage({ type: 'ai', message: aiResponse, timestamp: new Date() });
+
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+      setError(`AI processing failed: ${errorMessage}`);
+      onChatMessage({ type: 'ai', message: `Sorry, I encountered an error: ${errorMessage}`, timestamp: new Date() });
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [assets, getAIResponse, onChatMessage, onWorkOrderCreate]);
+
   useEffect(() => {
     const initializeSpeechRecognition = () => {
       if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognitionInstance = new SpeechRecognition();
-        
+        const recognitionInstance = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
         recognitionInstance.continuous = false;
-        recognitionInstance.interimResults = true;
+        recognitionInstance.interimResults = false;
         recognitionInstance.lang = 'en-US';
         
         recognitionInstance.onstart = () => {
           setIsListening(true);
-          setCurrentMessage('🎤 Listening... Speak now!');
-          setError(null);
         };
         
         recognitionInstance.onresult = (event: any) => {
-          let transcript = '';
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            if (event.results[i].isFinal) {
-              transcript = event.results[i][0].transcript;
-              setCurrentMessage(`Heard: "${transcript}"`);
-              handleVoiceCommand(transcript);
-            } else {
-              const interim = event.results[i][0].transcript;
-              setCurrentMessage(`Hearing: "${interim}..."`);
-            }
-          }
+          const transcript = event.results[0][0].transcript;
+          handleVoiceCommand(transcript);
         };
         
         recognitionInstance.onerror = (event: any) => {
-          setIsListening(false);
-          let errorMessage = 'Speech recognition error: ';
-          switch(event.error) {
-            case 'not-allowed':
-              errorMessage += 'Microphone access denied. Please allow microphone permissions.';
-              break;
-            case 'no-speech':
-              errorMessage += 'No speech detected. Please try again.';
-              break;
-            default:
-              errorMessage += event.error + '. Please try again.';
-          }
-          setError(errorMessage);
-          setCurrentMessage('');
+          setError(`Speech recognition error: ${event.error}`);
+          setIsProcessing(false);
         };
         
         recognitionInstance.onend = () => {
@@ -94,88 +111,7 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
     };
 
     initializeSpeechRecognition();
-  }, []);
-
-  const handleVoiceCommand = async (message: string) => {
-    setIsProcessing(true);
-    const lowerMessage = message.toLowerCase();
-    
-    try {
-      // Check if message mentions any asset
-      for (const assetKey in assets) {
-        if (lowerMessage.includes(assetKey)) {
-          const asset = assets[assetKey];
-          const newWorkOrder: WorkOrder = {
-            id: `WO-${Date.now()}`,
-            asset: asset,
-            startTime: new Date(),
-            status: 'In Progress',
-            technician: 'Current User',
-            description: message
-          };
-          
-          onWorkOrderCreate(newWorkOrder);
-          
-          const aiResponse = await getAIResponse(`User is starting work on ${asset.name}. Message: "${message}". Provide troubleshooting guidance.`);
-          
-          onChatMessage({ type: 'user', message, timestamp: new Date() });
-          onChatMessage({ type: 'ai', message: aiResponse, timestamp: new Date() });
-          
-          setCurrentMessage('Work order created successfully!');
-          setIsProcessing(false);
-          return;
-        }
-      }
-      
-      // Handle work order updates
-      if (activeWorkOrder && (lowerMessage.includes('problem') || lowerMessage.includes('issue') || lowerMessage.includes('broken') || lowerMessage.includes('leak'))) {
-        const assetName = activeWorkOrder.asset?.name || activeWorkOrder.assetName || 'unknown asset';
-        const aiResponse = await getAIResponse(`User reported: "${message}" on ${assetName}.`);
-        
-        onChatMessage({ type: 'user', message, timestamp: new Date() });
-        onChatMessage({ type: 'ai', message: aiResponse, timestamp: new Date() });
-        
-        setCurrentMessage('Issue logged!');
-        setIsProcessing(false);
-        return;
-      }
-      
-      // Handle work order completion
-      if (lowerMessage.includes('complete') || lowerMessage.includes('finished') || lowerMessage.includes('done')) {
-        if (activeWorkOrder) {
-          const startTime = activeWorkOrder.startTime || new Date();
-          const duration = Math.round((new Date().getTime() - startTime.getTime()) / 60000);
-          const updatedWorkOrder: WorkOrder = {
-            ...activeWorkOrder,
-            endTime: new Date(),
-            duration: duration,
-            status: 'Completed',
-            resolution: message
-          };
-          
-          onWorkOrderUpdate(updatedWorkOrder);
-          
-          onChatMessage({ type: 'system', message: `✅ Work order completed! Duration: ${duration} minutes`, timestamp: new Date() });
-          
-          setCurrentMessage('Work order completed!');
-          setIsProcessing(false);
-          return;
-        }
-      }
-      
-      // General AI assistance
-      const aiResponse = await getAIResponse(message);
-      onChatMessage({ type: 'user', message, timestamp: new Date() });
-      onChatMessage({ type: 'ai', message: aiResponse, timestamp: new Date() });
-      
-      setCurrentMessage('');
-    } catch (error) {
-      console.error('Voice command error:', error);
-      setError('Failed to process voice command. Please try again.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  }, [handleVoiceCommand]);
 
   const toggleListening = () => {
     if (!recognition) {

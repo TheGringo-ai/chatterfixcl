@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Package, Plus, Search, Filter, AlertTriangle, 
-  TrendingDown, ShoppingCart, Truck, DollarSign, 
-  CheckCircle, X, Edit, Save, ExternalLink, BarChart3
+  Package, Plus, Search, AlertTriangle, 
+  TrendingDown, ShoppingCart, DollarSign, 
+  Edit, Truck, CheckCircle, X, Save, ExternalLink, BarChart3, Filter
 } from 'lucide-react';
 
 interface Part {

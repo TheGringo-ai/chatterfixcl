@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { 
   Bot, Shield, TrendingUp, Clock, ArrowRight, Star, 
-  MessageCircle, Zap, Users, BarChart3, Wrench, 
-  DollarSign, Target, Lightbulb, Play, CheckCircle 
+  MessageCircle, Zap, Users,
+  DollarSign, Play, CheckCircle 
 } from 'lucide-react';
 import DemoChat from './components/DemoChat';
 
