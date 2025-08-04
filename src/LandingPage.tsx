@@ -8,9 +8,10 @@ import DemoChat from './components/DemoChat';
 
 interface LandingPageProps {
   onEnterApp: () => void;
+  getAIResponse?: (prompt: string) => Promise<string>;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, getAIResponse }) => {
   const [assets, setAssets] = useState(100);
   const [hours, setHours] = useState(500);
   const [rate, setRate] = useState(75);
@@ -501,6 +502,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       {showDemoChat && (
         <DemoChat 
           onClose={() => setShowDemoChat(false)}
+          getAIResponse={getAIResponse}
         />
       )}
     </div>

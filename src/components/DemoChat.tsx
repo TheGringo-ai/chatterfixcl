@@ -3,9 +3,10 @@ import { Send, MessageCircle, X } from 'lucide-react';
 
 interface DemoChatProps {
   onClose: () => void;
+  getAIResponse?: (prompt: string) => Promise<string>;
 }
 
-const DemoChat: React.FC<DemoChatProps> = ({ onClose }) => {
+const DemoChat: React.FC<DemoChatProps> = ({ onClose, getAIResponse }) => {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
@@ -20,40 +21,53 @@ const DemoChat: React.FC<DemoChatProps> = ({ onClose }) => {
 
     const userMessage = { role: 'user', content: input };
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = input;
     setInput('');
     setIsLoading(true);
 
     try {
-      const llamaApiUrl = process.env.REACT_APP_LLAMA_API_URL;
+      let aiResponse: string = '';
       
-      const response = await fetch(`${llamaApiUrl}/v1/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: "llama3.2:1b",
-          messages: [
-            {
-              role: "system", 
-              content: "You are ChatterFix AI, an expert assistant for maintenance, asset management, and work orders. Provide helpful, practical advice for equipment maintenance, troubleshooting, and asset management. Keep responses concise and actionable."
-            },
-            ...messages.map(msg => ({ role: msg.role, content: msg.content })),
-            { role: 'user', content: input }
-          ],
-          max_tokens: 150,
-          temperature: 0.7
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const aiResponse = data.choices?.[0]?.message?.content || 'Sorry, I could not process your request.';
-        
-        setMessages(prev => [...prev, { role: 'assistant', content: aiResponse.trim() }]);
+      if (getAIResponse) {
+        // Use the passed-in AI function
+        aiResponse = await getAIResponse(currentInput);
       } else {
-        setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
+        // Fallback to direct API call
+        const llamaApiUrl = process.env.REACT_APP_LLAMA_API_URL;
+        
+        if (!llamaApiUrl) {
+          aiResponse = "AI service is not available. Please contact support.";
+        } else {
+          const response = await fetch(`${llamaApiUrl}/v1/chat/completions`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: "llama3.2:1b",
+              messages: [
+                {
+                  role: "system", 
+                  content: "You are ChatterFix AI, an expert assistant for maintenance, asset management, and work orders. Provide helpful, practical advice for equipment maintenance, troubleshooting, and asset management. Keep responses concise and actionable."
+                },
+                ...messages.map(msg => ({ role: msg.role, content: msg.content })),
+                { role: 'user', content: currentInput }
+              ],
+              max_tokens: 150,
+              temperature: 0.7
+            })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            aiResponse = data.choices?.[0]?.message?.content || 'Sorry, I could not process your request.';
+          } else {
+            aiResponse = 'Sorry, I encountered an error. Please try again.';
+          }
+        }
       }
+
+      setMessages(prev => [...prev, { role: 'assistant', content: aiResponse.trim() }]);
     } catch (error) {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
     } finally {
