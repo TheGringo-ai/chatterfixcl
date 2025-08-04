@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Settings } from 'lucide-react';
 import './App.css';
+import { Toaster } from 'react-hot-toast';
 
 // Components
 import LandingPage from './LandingPage';
@@ -450,6 +451,7 @@ const ChatterFixApp: React.FC = () => {
 const App: React.FC = () => {
   return (
     <AuthProvider>
+      <Toaster position="top-right" />
       <ChatterFixApp />
     </AuthProvider>
   );

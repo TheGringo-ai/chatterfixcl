@@ -138,8 +138,9 @@ async def upload_document(
         blob = bucket.blob(cloud_filename)
         blob.upload_from_string(content, content_type=file.content_type)
         
-        # Make blob publicly readable (optional - you can use signed URLs instead)
-        blob.make_public()
+        # The public URL is now generated on-demand using signed URLs.
+        # We store the path and generate a URL when needed.
+        public_url = "" # blob.public_url
         
         # Extract text content for search
         extracted_text = extract_text_from_file(content, file.content_type)
