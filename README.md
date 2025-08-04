@@ -1,205 +1,85 @@
 # ChatterFix
 
-AI-Powered Asset Management & Maintenance Platform
+ChatterFix is a full-stack application designed to streamline work order management. It features a React frontend and a Python FastAPI backend, enabling technicians to create, manage, and track work orders, including the ability to upload photos and communicate via an integrated AI chat.
 
-## Overview
+## Features
 
-ChatterFix is a comprehensive asset management and maintenance platform that combines AI-powered assistance, voice interfaces, document management, and real-time analytics to streamline maintenance operations.
+*   **Work Order Management:** Create, view, update, and delete work orders.
+*   **Photo Uploads:** Attach images to work orders for better documentation.
+*   **AI Chat:** An integrated chat feature for real-time communication and assistance.
+*   **Document Storage:** Securely store and retrieve documents related to work orders.
+*   **Search and Filtering:** Easily find documents and work orders with powerful search capabilities.
 
-## 🚀 Features
+## Tech Stack
 
-### 🎯 **Core Components**
-- **Enhanced Asset Manager**: Complete asset lifecycle management with KPIs and analytics
-- **Work Order Management**: Track maintenance tasks, schedules, and completion rates
-- **Document Manager**: Cloud-based document storage with AI-powered search
-- **AI Onboarding Wizard**: Step-by-step setup with intelligent assistance
-- **Voice Interface**: Hands-free operation for field technicians
-- **Real-time Analytics**: Performance metrics and maintenance insights
+*   **Frontend:** React, TypeScript, Tailwind CSS
+*   **Backend:** Python, FastAPI
+*   **Database:** Google Firestore
+*   **Storage:** Google Cloud Storage
 
-### 🧠 **AI Integration**
-- Intelligent troubleshooting guidance
-- Predictive maintenance recommendations
-- Natural language chat assistance
-- Voice command processing
-- Document analysis and indexing
-
-### 📊 **Analytics & KPIs**
-- Asset reliability tracking
-- Maintenance compliance monitoring
-- Cost analysis and trends
-- Performance benchmarking
-- Utilization rate optimization
-
-## 🏗 Architecture
-
-### Frontend
-- **React** + **TypeScript** + **Tailwind CSS**
-- Responsive design with mobile support
-- Real-time data updates
-- Progressive Web App capabilities
-
-### Backend
-- **FastAPI** + **Python**
-- **Google Cloud Run** deployment
-- **RESTful API** design
-- Comprehensive error handling
-
-### Storage
-- **Google Cloud Storage** for documents
-- **Firestore** for metadata and analytics
-- **Cloud Build** for CI/CD
-
-## 🚀 Quick Start
+## Getting Started
 
 ### Prerequisites
-- Node.js (version 16 or higher)
-- Python 3.11+
-- Google Cloud account (for deployment)
+
+*   Node.js and npm
+*   Python 3.8+ and pip
+*   Google Cloud SDK
 
 ### Installation
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/TheGringo-ai/chatterfixcl.git
-   cd chatterfixcl
-   ```
+1.  **Clone the repository:**
+    ```sh
+    git clone https://github.com/TheGringo-ai/chatterfixcl.git
+    cd chatterfixcl
+    ```
 
-2. **Install frontend dependencies:**
-   ```bash
-   npm install
-   ```
+2.  **Install frontend dependencies:**
+    ```sh
+    npm install
+    ```
 
-3. **Set up environment variables:**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your API URLs and keys
-   ```
+3.  **Install backend dependencies:**
+    ```sh
+    pip install -r requirements.txt
+    ```
+    *(Note: You may need to create a `requirements.txt` file first based on the Python scripts.)*
 
-4. **Start development server:**
-   ```bash
-   npm start
-   ```
+### Running the Application
 
-5. **Open [http://localhost:3000](http://localhost:3000)**
+1.  **Start the frontend development server:**
+    ```sh
+    npm start
+    ```
+    The frontend will be available at `http://localhost:3000`.
 
-## 🛠 Development
+2.  **Start the backend API server:**
+    ```sh
+    uvicorn docker.api.main:app --reload
+    ```
+    The API will be available at `http://localhost:8000`.
 
-### Frontend Development
-```bash
-npm start          # Start development server
-npm run build      # Build for production
-npm test           # Run tests
-```
+## API Endpoints
 
-### Backend Development
-```bash
-cd docker
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
+The following are the main API endpoints available:
 
-### Deployment
-```bash
-# Deploy backend to Google Cloud Run
-./docker/deploy.sh
+*   `POST /upload`: Upload a document.
+*   `GET /documents`: Retrieve a list of documents.
+*   `GET /search`: Search for documents.
+*   `DELETE /documents/{document_id}`: Delete a document.
+*   `POST /documents/{document_id}/signed-url`: Generate a signed URL for a document.
 
-# Deploy frontend to Netlify
-npm run build
-# Upload build/ folder to Netlify
-```
+For more details, you can access the auto-generated API documentation at `http://localhost:8000/docs`.
 
-## 📋 Available Scripts
+## Contributing
 
-- `npm start` - Development server with hot reload
-- `npm test` - Run test suite
-- `npm run build` - Production build
-- `npm run eject` - Eject from Create React App
+Contributions are welcome! Please feel free to submit a pull request.
 
-## 🌐 API Endpoints
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
 
-### Assets
-- `GET /assets` - List all assets
-- `POST /assets` - Create new asset
-- `PUT /assets/{id}` - Update asset
-- `DELETE /assets/{id}` - Remove asset
+## License
 
-### Work Orders
-- `GET /workorders` - List work orders
-- `POST /workorders` - Create work order
-- `PUT /workorders/{id}` - Update work order
-
-### Documents
-- `POST /upload` - Upload document
-- `GET /documents` - List documents
-- `GET /search` - Search documents
-
-### AI Chat
-- `POST /chat` - AI assistance endpoint
-
-## 🎮 Usage
-
-### Asset Management
-1. Navigate to "Assets" tab
-2. View asset dashboard with real-time KPIs
-3. Add new assets or edit existing ones
-4. Track reliability and maintenance schedules
-
-### Work Orders
-1. Create work orders from the dashboard
-2. Assign to technicians
-3. Track progress and completion
-4. Monitor overdue items
-
-### Document Management
-1. Upload maintenance manuals and documents
-2. Use AI-powered search to find information
-3. Organize by asset or category
-
-### Voice Commands
-- "Show me critical assets"
-- "Create work order for [equipment]"
-- "What's the status of [asset]?"
-
-## 🔧 Configuration
-
-### Environment Variables
-```bash
-REACT_APP_STORAGE_API_URL=https://your-api-url.com
-REACT_APP_LLAMA_API_URL=https://your-llama-api.com
-```
-
-### Google Cloud Setup
-1. Create Google Cloud project
-2. Enable Cloud Storage and Firestore APIs
-3. Set up service account credentials
-4. Configure Cloud Run deployment
-
-## 🌍 Browser Support
-
-- ✅ Chrome (recommended for voice features)
-- ✅ Safari
-- ✅ Edge
-- ✅ Firefox
-- 📱 Mobile browsers
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙋‍♂️ Support
-
-For questions and support:
-- Create an issue on GitHub
-- Contact: [your-email@domain.com]
-
----
-
-**ChatterFix** - Revolutionizing maintenance with AI-powered intelligence.
+This project is licensed under the MIT License. See the `LICENSE` file for details.
