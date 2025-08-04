@@ -97,19 +97,26 @@ class Asset(BaseModel):
 
 class WorkOrderEnhanced(BaseModel):
     id: Optional[str] = None
-    title: str
-    description: str
-    asset: Dict[str, str]  # {id, name, location}
-    priority: str  # 'low' | 'medium' | 'high' | 'critical'
-    status: str  # 'pending' | 'assigned' | 'in-progress' | 'on-hold' | 'completed' | 'cancelled'
+    title: Optional[str] = None
+    description: Optional[str] = None
+    asset: Optional[Dict[str, str]] = None  # {id, name, location}
+    assetName: Optional[str] = None
+    location: Optional[str] = None
+    priority: Optional[str] = None  # 'low' | 'medium' | 'high' | 'critical'
+    status: str = 'pending'  # 'pending' | 'assigned' | 'in-progress' | 'on-hold' | 'completed' | 'cancelled'
     assignedTo: Optional[str] = None
-    createdBy: str
+    createdBy: Optional[str] = None
     createdAt: Optional[str] = None
     dueDate: Optional[str] = None
     estimatedHours: Optional[float] = 0
     actualHours: Optional[float] = 0
-    downtime: Optional[Dict[str, Any]] = None
-    checkedInTechnician: Optional[Dict[str, str]] = None
+    startTime: Optional[str] = None
+    endTime: Optional[str] = None
+    duration: Optional[float] = None
+    technician: Optional[str] = None
+    resolution: Optional[str] = None
+    downtime: Optional[Dict[str, Any]] = None  # {started: str | None, ended: str | None, totalMinutes: float}
+    checkedInTechnician: Optional[Dict[str, str]] = None  # {name: str, checkedInAt: str}
     parts: Optional[List[Dict[str, Any]]] = []
     attachments: Optional[List[Dict[str, Any]]] = []
     notes: Optional[List[Dict[str, Any]]] = []
@@ -1201,7 +1208,8 @@ async def create_purchase_order(purchase_order: PurchaseOrder):
         logger.error(f"Error creating purchase order: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to create purchase order: {str(e)}")
 
-# Chat Endpoint for Onboarding
+# Chat Endpoint for Onboarding and AI Assistance
+import httpx
 
 class ChatRequest(BaseModel):
     message: str
@@ -1213,6 +1221,72 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     suggestions: Optional[Dict[str, Any]] = None
+
+class AIAssistantRequest(BaseModel):
+    prompt: str
+    context: Optional[str] = None
+    workOrderId: Optional[str] = None
+    assetId: Optional[str] = None
+
+@app.post("/ai-assistant", response_model=ChatResponse)
+async def ai_assistant(request: AIAssistantRequest):
+    """Enhanced AI assistant using Llama API for all dashboard chat functions"""
+    try:
+        # Use your external Llama API endpoint
+        llama_api_url = "https://chatterfix-llama-api-650169261019.us-central1.run.app"
+        
+        # Prepare context-aware prompt
+        enhanced_prompt = f"""You are ChatterFix, an AI assistant for maintenance management. 
+        
+Context: {request.context or 'general'}
+User prompt: {request.prompt}
+
+Provide helpful, specific advice for maintenance operations, asset management, work orders, and parts inventory. 
+Be concise but comprehensive."""
+
+        # Add specific context if provided
+        if request.workOrderId:
+            enhanced_prompt += f"\nThis relates to work order ID: {request.workOrderId}"
+        if request.assetId:
+            enhanced_prompt += f"\nThis relates to asset ID: {request.assetId}"
+
+        # Call Llama API
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{llama_api_url}/v1/chat/completions",
+                json={
+                    "model": "llama3.2:1b",
+                    "messages": [
+                        {"role": "system", "content": "You are ChatterFix AI, a maintenance management assistant."},
+                        {"role": "user", "content": enhanced_prompt}
+                    ],
+                    "max_tokens": 500,
+                    "temperature": 0.7
+                },
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                llama_response = response.json()
+                ai_content = llama_response["choices"][0]["message"]["content"]
+                
+                return ChatResponse(
+                    response=ai_content,
+                    suggestions=None
+                )
+            else:
+                # Fallback response
+                return ChatResponse(
+                    response="I'm having trouble connecting to the AI service right now. Please try again in a moment.",
+                    suggestions=None
+                )
+                
+    except Exception as e:
+        logger.error(f"Error in AI assistant: {e}")
+        return ChatResponse(
+            response="I'm experiencing technical difficulties. Please try again or contact support if the issue persists.",
+            suggestions=None
+        )
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat_onboarding(request: ChatRequest):

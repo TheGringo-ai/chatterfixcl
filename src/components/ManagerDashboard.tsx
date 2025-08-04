@@ -8,6 +8,10 @@ import {
   Bell, MapPin, Star, Award, ThumbsUp
 } from 'lucide-react';
 
+interface ManagerDashboardProps {
+  getAIResponse?: (prompt: string, context?: string, workOrderId?: string, assetId?: string) => Promise<string>;
+}
+
 interface KPI {
   title: string;
   value: string | number;
@@ -46,10 +50,6 @@ interface AssetHealth {
   lastMaintenance: string;
   nextDue: string;
   location: string;
-}
-
-interface ManagerDashboardProps {
-  getAIResponse?: (prompt: string) => Promise<string>;
 }
 
 const ManagerDashboard: React.FC<ManagerDashboardProps> = ({ getAIResponse }) => {
@@ -247,7 +247,7 @@ Context: You are an AI assistant for a maintenance manager using ChatterFix CMMS
 
 Provide specific, actionable insights and recommendations for maintenance management decisions.`;
 
-        aiResponse = await getAIResponse(managerPrompt);
+        aiResponse = await getAIResponse(managerPrompt, 'manager-dashboard');
       } else {
         aiResponse = 'AI service not available. Please ensure the Llama API is configured.';
       }

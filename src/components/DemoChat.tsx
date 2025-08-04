@@ -3,7 +3,7 @@ import { Send, MessageCircle, X } from 'lucide-react';
 
 interface DemoChatProps {
   onClose: () => void;
-  getAIResponse?: (prompt: string) => Promise<string>;
+  getAIResponse?: (prompt: string, context?: string, workOrderId?: string, assetId?: string) => Promise<string>;
 }
 
 const DemoChat: React.FC<DemoChatProps> = ({ onClose, getAIResponse }) => {
@@ -30,7 +30,7 @@ const DemoChat: React.FC<DemoChatProps> = ({ onClose, getAIResponse }) => {
       
       if (getAIResponse) {
         // Use the passed-in AI function
-        aiResponse = await getAIResponse(currentInput);
+        aiResponse = await getAIResponse(currentInput, 'demo-chat');
       } else {
         // Fallback to direct API call
         const llamaApiUrl = process.env.REACT_APP_LLAMA_API_URL;

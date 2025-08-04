@@ -120,58 +120,41 @@ const ChatterFixApp: React.FC = () => {
     setInventory(demoInventory);
   };
 
-  // AI Response Handler (wrapped with error handler)
-  const getAIResponse = withErrorHandler(async (prompt: string): Promise<string> => {
-    const llamaApiUrl = process.env.REACT_APP_LLAMA_API_URL;
-    
-    if (!llamaApiUrl) {
-      return "Llama API URL not configured. Please set REACT_APP_LLAMA_API_URL environment variable.";
-    }
+  // Constants
+  const apiUrl = process.env.REACT_APP_STORAGE_API_URL || 'https://chatterfix-storage-api-psycl7nhha-uc.a.run.app';
 
-    setIsProcessingAI(true);
-    
+  // AI Response Handler (wrapped with error handler)
+  const getAIResponse = async (
+    prompt: string, 
+    context?: string,
+    workOrderId?: string,
+    assetId?: string
+  ): Promise<string> => {
     try {
-      // Use OpenAI-compatible endpoint for your Llama API
-      const response = await fetch(`${llamaApiUrl}/v1/chat/completions`, {
+      const response = await fetch(`${apiUrl}/ai-assistant`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: "llama3.2:1b",
-          messages: [
-            {
-              role: "system", 
-              content: "You are ChatterFix AI Sales Agent, an expert consultant specializing in maintenance management, asset optimization, and AI-powered industrial solutions. Your role is to help potential customers understand how ChatterFix can transform their operations.\n\nChatterFix Platform Capabilities:\n- Voice-activated work order creation and management\n- AI-powered predictive maintenance recommendations\n- OCR scanning for equipment documentation and part identification\n- Comprehensive asset tracking and lifecycle management\n- Inventory management with automated reorder suggestions\n- Integration with existing maintenance management systems\n- Real-time equipment status monitoring and alerts\n- SQF industry compliance tracking and reporting\n- Mobile-first design for technicians in the field\n\nKey Benefits to Emphasize:\n- 89% faster work order creation through voice commands\n- 67% reduction in equipment downtime through predictive insights\n- 45% cost savings on parts inventory management\n- Improved regulatory compliance and audit readiness\n- Enhanced technician productivity and safety\n- Better data-driven decision making\n- Seamless integration with existing workflows\n\nWhen customers ask about:\n- ROI: Focus on reduced downtime, faster repairs, optimized inventory\n- Implementation: Emphasize easy setup, mobile accessibility, minimal training\n- Technology: Highlight AI capabilities, voice interface, OCR scanning\n- Compliance: Mention SQF standards, audit trails, documentation\n- Integration: Discuss API compatibility, data export, existing system connectivity\n\nAlways be helpful, professional, and focus on solving their specific maintenance challenges. Ask follow-up questions to understand their industry, equipment types, and current pain points."
-            },
-            {
-              role: "user", 
-              content: prompt
-            }
-          ],
-          max_tokens: 300,
-          temperature: 0.7
-        })
+          prompt,
+          context,
+          workOrderId,
+          assetId
+        }),
       });
 
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
-      
-      // Extract response from OpenAI-compatible format
-      const aiResponse = data.choices?.[0]?.message?.content || 'Sorry, I could not process your request.';
-      return aiResponse.trim();
+      return data.response || 'Sorry, I could not process your request.';
     } catch (error) {
-      console.error('Llama API Error:', error);
-      return 'Sorry, I encountered an error while processing your request. Please try again.';
-    } finally {
-      setIsProcessingAI(false);
+      console.error('Error getting AI response:', error);
+      return 'Sorry, I\'m having trouble connecting right now. Please try again.';
     }
-  });
-
-  // Work Order Handlers
+  };  // Work Order Handlers
   const handleWorkOrderCreate = (workOrder: any) => {
     setActiveWorkOrder(workOrder);
     setWorkOrders(prev => [workOrder, ...prev]);
