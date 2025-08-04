@@ -124,6 +124,46 @@ class WorkOrderListResponse(BaseModel):
     work_orders: List[WorkOrder]
     total: int
 
+# Parts Inventory Models
+class Part(BaseModel):
+    id: Optional[str] = None
+    part_number: str
+    name: str
+    description: str
+    category: str
+    location: str
+    current_stock: int
+    min_stock: int
+    max_stock: int
+    unit_price: float
+    vendor: str
+    asset_ids: List[str] = []
+    last_order_date: Optional[str] = None
+    lead_time_days: int
+    status: str  # 'active', 'discontinued', 'backordered'
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+class PurchaseOrder(BaseModel):
+    id: Optional[str] = None
+    po_number: str
+    vendor: str
+    order_date: str
+    expected_date: str
+    status: str  # 'pending', 'ordered', 'delivered', 'cancelled'
+    parts: List[Dict[str, Any]] = []  # [{"part_id": str, "quantity": int, "unit_price": float}]
+    total_amount: float
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+class PartsListResponse(BaseModel):
+    parts: List[Part]
+    total: int
+
+class PurchaseOrderListResponse(BaseModel):
+    purchase_orders: List[PurchaseOrder]
+    total: int
+
 # Utility functions
 def extract_text_from_pdf(file_content: bytes) -> str:
     """Extract text from PDF file"""
@@ -672,6 +712,268 @@ async def delete_work_order(work_order_id: str):
     except Exception as e:
         logger.error(f"Error deleting work order: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to delete work order: {str(e)}")
+
+# Parts Inventory Endpoints
+
+@app.get("/parts", response_model=PartsListResponse)
+async def get_parts():
+    """Get all parts inventory"""
+    try:
+        parts_ref = db.collection('parts')
+        docs = parts_ref.stream()
+        
+        parts = []
+        for doc in docs:
+            part_data = doc.to_dict()
+            part_data['id'] = doc.id
+            parts.append(Part(**part_data))
+        
+        # If no data exists, return demo data
+        if not parts:
+            demo_parts = [
+                {
+                    "id": "1",
+                    "part_number": "BRG-001",
+                    "name": "Motor Bearing",
+                    "description": "High-speed motor bearing for pumps",
+                    "category": "Bearings",
+                    "location": "Warehouse A-12",
+                    "current_stock": 5,
+                    "min_stock": 10,
+                    "max_stock": 50,
+                    "unit_price": 45.99,
+                    "vendor": "Industrial Supply Co",
+                    "asset_ids": ["pump-001", "pump-003"],
+                    "last_order_date": "2024-01-15",
+                    "lead_time_days": 7,
+                    "status": "active",
+                    "created_at": "2024-01-01T00:00:00",
+                    "updated_at": "2024-01-15T10:30:00"
+                },
+                {
+                    "id": "2",
+                    "part_number": "FLT-208",
+                    "name": "Air Filter",
+                    "description": "HEPA air filter for HVAC systems",
+                    "category": "Filters",
+                    "location": "Warehouse B-05",
+                    "current_stock": 25,
+                    "min_stock": 15,
+                    "max_stock": 100,
+                    "unit_price": 23.50,
+                    "vendor": "FilterMax Ltd",
+                    "asset_ids": ["hvac-001", "hvac-002"],
+                    "last_order_date": "2024-01-20",
+                    "lead_time_days": 3,
+                    "status": "active",
+                    "created_at": "2024-01-01T00:00:00",
+                    "updated_at": "2024-01-20T14:15:00"
+                },
+                {
+                    "id": "3",
+                    "part_number": "BLT-150",
+                    "name": "Drive Belt",
+                    "description": "V-belt for conveyor systems",
+                    "category": "Belts",
+                    "location": "Warehouse A-08",
+                    "current_stock": 8,
+                    "min_stock": 12,
+                    "max_stock": 30,
+                    "unit_price": 67.25,
+                    "vendor": "Belt Dynamics",
+                    "asset_ids": ["conv-001"],
+                    "last_order_date": "2024-01-10",
+                    "lead_time_days": 5,
+                    "status": "active",
+                    "created_at": "2024-01-01T00:00:00",
+                    "updated_at": "2024-01-10T09:20:00"
+                },
+                {
+                    "id": "4",
+                    "part_number": "SLV-304",
+                    "name": "Gate Valve",
+                    "description": "6-inch stainless steel gate valve",
+                    "category": "Valves",
+                    "location": "Warehouse C-15",
+                    "current_stock": 2,
+                    "min_stock": 5,
+                    "max_stock": 20,
+                    "unit_price": 285.00,
+                    "vendor": "Valve Solutions Inc",
+                    "asset_ids": ["pipe-001", "pipe-003"],
+                    "last_order_date": "2023-12-15",
+                    "lead_time_days": 14,
+                    "status": "active",
+                    "created_at": "2024-01-01T00:00:00",
+                    "updated_at": "2023-12-15T16:45:00"
+                },
+                {
+                    "id": "5",
+                    "part_number": "GSK-099",
+                    "name": "Pump Gasket",
+                    "description": "Rubber gasket for centrifugal pumps",
+                    "category": "Gaskets",
+                    "location": "Warehouse A-04",
+                    "current_stock": 0,
+                    "min_stock": 8,
+                    "max_stock": 40,
+                    "unit_price": 12.75,
+                    "vendor": "Seal-Tech Corp",
+                    "asset_ids": ["pump-001", "pump-002", "pump-003"],
+                    "last_order_date": "2023-11-30",
+                    "lead_time_days": 10,
+                    "status": "backordered",
+                    "created_at": "2024-01-01T00:00:00",
+                    "updated_at": "2023-11-30T11:00:00"
+                }
+            ]
+            parts = [Part(**part_data) for part_data in demo_parts]
+        
+        return PartsListResponse(parts=parts, total=len(parts))
+        
+    except Exception as e:
+        logger.error(f"Error getting parts: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get parts: {str(e)}")
+
+@app.post("/parts", response_model=Part)
+async def create_part(part: Part):
+    """Create a new part"""
+    try:
+        part_data = part.dict(exclude={'id'})
+        part_data['created_at'] = datetime.now().isoformat()
+        part_data['updated_at'] = datetime.now().isoformat()
+        
+        doc_ref = db.collection('parts').document()
+        doc_ref.set(part_data)
+        
+        part_data['id'] = doc_ref.id
+        
+        logger.info(f"Successfully created part: {doc_ref.id}")
+        return Part(**part_data)
+        
+    except Exception as e:
+        logger.error(f"Error creating part: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to create part: {str(e)}")
+
+@app.put("/parts/{part_id}", response_model=Part)
+async def update_part(part_id: str, part: Part):
+    """Update an existing part"""
+    try:
+        doc_ref = db.collection('parts').document(part_id)
+        doc = doc_ref.get()
+        
+        if not doc.exists:
+            raise HTTPException(status_code=404, detail="Part not found")
+        
+        part_data = part.dict(exclude={'id'})
+        part_data['updated_at'] = datetime.now().isoformat()
+        
+        # Preserve created_at if it exists
+        existing_data = doc.to_dict()
+        if "created_at" in existing_data:
+            part_data["created_at"] = existing_data["created_at"]
+        
+        doc_ref.set(part_data)
+        part_data['id'] = part_id
+        
+        logger.info(f"Successfully updated part: {part_id}")
+        return Part(**part_data)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating part: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to update part: {str(e)}")
+
+@app.delete("/parts/{part_id}")
+async def delete_part(part_id: str):
+    """Delete a part"""
+    try:
+        doc_ref = db.collection('parts').document(part_id)
+        doc = doc_ref.get()
+        
+        if not doc.exists:
+            raise HTTPException(status_code=404, detail="Part not found")
+        
+        doc_ref.delete()
+        
+        logger.info(f"Successfully deleted part: {part_id}")
+        return {"message": "Part deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting part: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete part: {str(e)}")
+
+@app.get("/purchase-orders", response_model=PurchaseOrderListResponse)
+async def get_purchase_orders():
+    """Get all purchase orders"""
+    try:
+        po_ref = db.collection('purchase_orders')
+        docs = po_ref.stream()
+        
+        purchase_orders = []
+        for doc in docs:
+            po_data = doc.to_dict()
+            po_data['id'] = doc.id
+            purchase_orders.append(PurchaseOrder(**po_data))
+        
+        # If no data exists, return demo data
+        if not purchase_orders:
+            demo_pos = [
+                {
+                    "id": "1",
+                    "po_number": "PO-2024-001",
+                    "vendor": "Industrial Supply Co",
+                    "order_date": "2024-01-22",
+                    "expected_date": "2024-01-29",
+                    "status": "ordered",
+                    "parts": [{"part_id": "1", "quantity": 20, "unit_price": 45.99}],
+                    "total_amount": 919.80,
+                    "created_at": "2024-01-22T09:00:00",
+                    "updated_at": "2024-01-22T09:00:00"
+                },
+                {
+                    "id": "2",
+                    "po_number": "PO-2024-002",
+                    "vendor": "Seal-Tech Corp",
+                    "order_date": "2024-01-20",
+                    "expected_date": "2024-01-30",
+                    "status": "pending",
+                    "parts": [{"part_id": "5", "quantity": 30, "unit_price": 12.75}],
+                    "total_amount": 382.50,
+                    "created_at": "2024-01-20T14:30:00",
+                    "updated_at": "2024-01-20T14:30:00"
+                }
+            ]
+            purchase_orders = [PurchaseOrder(**po_data) for po_data in demo_pos]
+        
+        return PurchaseOrderListResponse(purchase_orders=purchase_orders, total=len(purchase_orders))
+        
+    except Exception as e:
+        logger.error(f"Error getting purchase orders: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get purchase orders: {str(e)}")
+
+@app.post("/purchase-orders", response_model=PurchaseOrder)
+async def create_purchase_order(purchase_order: PurchaseOrder):
+    """Create a new purchase order"""
+    try:
+        po_data = purchase_order.dict(exclude={'id'})
+        po_data['created_at'] = datetime.now().isoformat()
+        po_data['updated_at'] = datetime.now().isoformat()
+        
+        doc_ref = db.collection('purchase_orders').document()
+        doc_ref.set(po_data)
+        
+        po_data['id'] = doc_ref.id
+        
+        logger.info(f"Successfully created purchase order: {doc_ref.id}")
+        return PurchaseOrder(**po_data)
+        
+    except Exception as e:
+        logger.error(f"Error creating purchase order: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to create purchase order: {str(e)}")
 
 # Chat Endpoint for Onboarding
 

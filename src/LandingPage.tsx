@@ -8,10 +8,11 @@ import DemoChat from './components/DemoChat';
 
 interface LandingPageProps {
   onEnterApp: () => void;
+  onEnterDemo?: () => void;
   getAIResponse?: (prompt: string) => Promise<string>;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, getAIResponse }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterDemo, getAIResponse }) => {
   const [assets, setAssets] = useState(100);
   const [hours, setHours] = useState(500);
   const [rate, setRate] = useState(75);
@@ -93,6 +94,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, getAIResponse }) 
                 <span>Try Live Demo</span>
                 <ArrowRight className="w-5 h-5" />
               </button>
+              {onEnterDemo && (
+                <button
+                  onClick={onEnterDemo}
+                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold px-8 py-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2"
+                >
+                  <BarChart3 className="w-5 h-5" />
+                  <span>Manager Dashboard</span>
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              )}
               <button
                 onClick={() => document.getElementById('roi-calculator')?.scrollIntoView({ behavior: 'smooth' })}
                 className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium px-8 py-4 rounded-lg transition-all duration-200 flex items-center space-x-2"

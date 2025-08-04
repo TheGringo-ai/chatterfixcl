@@ -6,6 +6,8 @@ import './App.css';
 import LandingPage from './LandingPage';
 import DocumentManager from './components/DocumentManager';
 import AssetManager from './components/AssetManager';
+import PartsInventory from './components/PartsInventory';
+import ManagerDashboard from './components/ManagerDashboard';
 import OnboardingPage from './components/OnboardingPage';
 import Login from './components/Login';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -28,6 +30,7 @@ const ChatterFixApp: React.FC = () => {
   const { error, handleError, clearError, withErrorHandler } = useErrorHandler();
   
   const [showLandingPage, setShowLandingPage] = useState(true);
+  const [showManagerDemo, setShowManagerDemo] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [activeWorkOrder, setActiveWorkOrder] = useState<WorkOrder | null>(null);
@@ -198,8 +201,55 @@ const ChatterFixApp: React.FC = () => {
       <ErrorBoundary>
         <LandingPage 
           onEnterApp={() => setShowLandingPage(false)} 
+          onEnterDemo={() => {
+            setShowLandingPage(false);
+            setShowManagerDemo(true);
+          }}
           getAIResponse={getAIResponse}
         />
+      </ErrorBoundary>
+    );
+  }
+
+  // Show Manager Dashboard Demo (no auth required)
+  if (showManagerDemo) {
+    return (
+      <ErrorBoundary>
+        <div className="min-h-screen bg-gray-100">
+          <header className="bg-white shadow-sm">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex justify-between items-center h-16">
+                <div className="flex items-center">
+                  <h1 className="text-xl font-bold text-gray-900">ChatterFix Demo</h1>
+                  <span className="ml-3 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                    Manager Dashboard Demo
+                  </span>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => {
+                      setShowManagerDemo(false);
+                      setShowLandingPage(true);
+                    }}
+                    className="text-sm text-gray-500 hover:text-gray-700"
+                  >
+                    ← Back to Landing
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowManagerDemo(false);
+                      setShowLandingPage(false);
+                    }}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                  >
+                    Try Full App
+                  </button>
+                </div>
+              </div>
+            </div>
+          </header>
+          <ManagerDashboard getAIResponse={getAIResponse} />
+        </div>
       </ErrorBoundary>
     );
   }
@@ -273,7 +323,7 @@ const ChatterFixApp: React.FC = () => {
         <nav className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex space-x-8">
-              {['voice', 'ocr', 'assets', 'documents'].map((view) => (
+              {['voice', 'ocr', 'assets', 'inventory', 'manager', 'documents'].map((view) => (
                 <button
                   key={view}
                   onClick={() => setCurrentView(view)}
@@ -283,7 +333,9 @@ const ChatterFixApp: React.FC = () => {
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  {view === 'ocr' ? 'OCR Scanner' : view}
+                  {view === 'ocr' ? 'OCR Scanner' : 
+                   view === 'inventory' ? 'Parts Inventory' : 
+                   view === 'manager' ? 'Manager Dashboard' : view}
                 </button>
               ))}
             </div>
@@ -351,6 +403,14 @@ const ChatterFixApp: React.FC = () => {
 
           {currentView === 'assets' && (
             <AssetManager onAssetSelected={(asset) => console.log('Asset selected:', asset)} />
+          )}
+
+          {currentView === 'inventory' && (
+            <PartsInventory />
+          )}
+
+          {currentView === 'manager' && (
+            <ManagerDashboard getAIResponse={getAIResponse} />
           )}
 
           {currentView === 'documents' && (
