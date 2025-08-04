@@ -95,33 +95,42 @@ class Asset(BaseModel):
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
 
-class WorkOrder(BaseModel):
+class WorkOrderEnhanced(BaseModel):
     id: Optional[str] = None
-    asset_id: str
     title: str
     description: str
-    type: str  # 'preventive', 'corrective', 'emergency', 'inspection', 'calibration'
-    priority: str  # 'low', 'medium', 'high', 'critical'
-    status: str  # 'pending', 'in-progress', 'completed', 'cancelled', 'on-hold'
-    assigned_to: str
-    requested_by: str
-    scheduled_date: str
-    completed_date: Optional[str] = None
-    estimated_hours: float
-    actual_hours: Optional[float] = None
-    estimated_cost: float
-    actual_cost: Optional[float] = None
-    notes: str
-    parts: List[Dict[str, Any]] = []  # [{"name": str, "quantity": int, "cost": float}]
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
+    asset: Dict[str, str]  # {id, name, location}
+    priority: str  # 'low' | 'medium' | 'high' | 'critical'
+    status: str  # 'pending' | 'assigned' | 'in-progress' | 'on-hold' | 'completed' | 'cancelled'
+    assignedTo: Optional[str] = None
+    createdBy: str
+    createdAt: Optional[str] = None
+    dueDate: Optional[str] = None
+    estimatedHours: Optional[float] = 0
+    actualHours: Optional[float] = 0
+    downtime: Optional[Dict[str, Any]] = None
+    checkedInTechnician: Optional[Dict[str, str]] = None
+    parts: Optional[List[Dict[str, Any]]] = []
+    attachments: Optional[List[Dict[str, Any]]] = []
+    notes: Optional[List[Dict[str, Any]]] = []
+    procedures: Optional[List[str]] = []
+    safetyNotes: Optional[List[str]] = []
+
+class WorkOrderNote(BaseModel):
+    text: str
+    type: str = 'note'  # 'note' | 'status_change' | 'part_checkout' | 'checkin_checkout'
+
+class WorkOrderAttachment(BaseModel):
+    name: str
+    type: str  # 'image' | 'video' | 'document'
+    description: Optional[str] = None
 
 class AssetListResponse(BaseModel):
     assets: List[Asset]
     total: int
 
 class WorkOrderListResponse(BaseModel):
-    work_orders: List[WorkOrder]
+    work_orders: List[WorkOrderEnhanced]
     total: int
 
 # Parts Inventory Models
@@ -590,7 +599,7 @@ async def list_work_orders(
         for doc in docs:
             wo_data = doc.to_dict()
             wo_data["id"] = doc.id
-            work_orders.append(WorkOrder(**wo_data))
+            work_orders.append(WorkOrderEnhanced(**wo_data))
         
         total = len(work_orders)  # Simplified count
         
@@ -601,7 +610,7 @@ async def list_work_orders(
         raise HTTPException(status_code=500, detail=f"Failed to list work orders: {str(e)}")
 
 @app.post("/workorders")
-async def create_work_order(work_order: WorkOrder):
+async def create_work_order(work_order: WorkOrderEnhanced):
     """Create a new work order"""
     if not db:
         raise HTTPException(status_code=503, detail="Database service unavailable")
@@ -621,7 +630,7 @@ async def create_work_order(work_order: WorkOrder):
         
         logger.info(f"Successfully created work order: {wo_id}")
         
-        return WorkOrder(**wo_data)
+        return WorkOrderEnhanced(**wo_data)
         
     except Exception as e:
         logger.error(f"Error creating work order: {e}")
@@ -643,7 +652,7 @@ async def get_work_order(work_order_id: str):
         wo_data = doc.to_dict()
         wo_data["id"] = doc.id
         
-        return WorkOrder(**wo_data)
+        return WorkOrderEnhanced(**wo_data)
         
     except HTTPException:
         raise
@@ -652,7 +661,7 @@ async def get_work_order(work_order_id: str):
         raise HTTPException(status_code=500, detail=f"Failed to get work order: {str(e)}")
 
 @app.put("/workorders/{work_order_id}")
-async def update_work_order(work_order_id: str, work_order: WorkOrder):
+async def update_work_order(work_order_id: str, work_order: WorkOrderEnhanced):
     """Update an existing work order"""
     if not db:
         raise HTTPException(status_code=503, detail="Database service unavailable")
@@ -679,7 +688,7 @@ async def update_work_order(work_order_id: str, work_order: WorkOrder):
         
         logger.info(f"Successfully updated work order: {work_order_id}")
         
-        return WorkOrder(**wo_data)
+        return WorkOrderEnhanced(**wo_data)
         
     except HTTPException:
         raise
@@ -712,6 +721,223 @@ async def delete_work_order(work_order_id: str):
     except Exception as e:
         logger.error(f"Error deleting work order: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to delete work order: {str(e)}")
+
+# Enhanced Work Order Endpoints
+
+@app.post("/workorders/{work_order_id}/attachments")
+async def upload_work_order_attachment(
+    work_order_id: str,
+    file: UploadFile = File(...),
+    description: str = Form(""),
+    attachment_type: str = Form("image")
+):
+    """Upload an attachment to a work order"""
+    if not storage_client or not db:
+        raise HTTPException(status_code=503, detail="Storage service unavailable")
+    
+    try:
+        # Verify work order exists
+        doc_ref = db.collection("workorders").document(work_order_id)
+        doc = doc_ref.get()
+        
+        if not doc.exists:
+            raise HTTPException(status_code=404, detail="Work order not found")
+        
+        # Generate unique filename
+        file_id = str(uuid.uuid4())
+        file_extension = file.filename.split('.')[-1] if '.' in file.filename else ''
+        blob_name = f"workorders/{work_order_id}/attachments/{file_id}.{file_extension}"
+        
+        # Upload to Google Cloud Storage
+        bucket = storage_client.bucket(BUCKET_NAME)
+        blob = bucket.blob(blob_name)
+        
+        # Upload file content
+        content = await file.read()
+        blob.upload_from_string(content, content_type=file.content_type)
+        
+        # Generate public URL
+        blob.make_public()
+        file_url = blob.public_url
+        
+        # Create attachment record
+        attachment = {
+            "id": file_id,
+            "name": file.filename,
+            "type": attachment_type,
+            "url": file_url,
+            "uploadedBy": "Current User",  # In real app, get from auth
+            "uploadedAt": datetime.now().isoformat(),
+            "description": description,
+            "size": len(content)
+        }
+        
+        # Update work order with new attachment
+        wo_data = doc.to_dict()
+        if "attachments" not in wo_data:
+            wo_data["attachments"] = []
+        wo_data["attachments"].append(attachment)
+        wo_data["updated_at"] = datetime.now().isoformat()
+        
+        doc_ref.set(wo_data)
+        
+        logger.info(f"Attachment uploaded for work order {work_order_id}: {file.filename}")
+        
+        return attachment
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error uploading attachment: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload attachment: {str(e)}")
+
+@app.post("/workorders/{work_order_id}/notes")
+async def add_work_order_note(work_order_id: str, note: WorkOrderNote):
+    """Add a note to a work order"""
+    if not db:
+        raise HTTPException(status_code=503, detail="Database service unavailable")
+    
+    try:
+        # Verify work order exists
+        doc_ref = db.collection("workorders").document(work_order_id)
+        doc = doc_ref.get()
+        
+        if not doc.exists:
+            raise HTTPException(status_code=404, detail="Work order not found")
+        
+        # Create note record
+        note_record = {
+            "id": str(uuid.uuid4()),
+            "text": note.text,
+            "author": "Current User",  # In real app, get from auth
+            "timestamp": datetime.now().isoformat(),
+            "type": note.type
+        }
+        
+        # Update work order with new note
+        wo_data = doc.to_dict()
+        if "notes" not in wo_data:
+            wo_data["notes"] = []
+        wo_data["notes"].append(note_record)
+        wo_data["updated_at"] = datetime.now().isoformat()
+        
+        doc_ref.set(wo_data)
+        
+        logger.info(f"Note added to work order {work_order_id}")
+        
+        return note_record
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error adding note: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to add note: {str(e)}")
+
+@app.put("/workorders/{work_order_id}/checkin")
+async def technician_checkin(work_order_id: str):
+    """Check in a technician to a work order"""
+    if not db:
+        raise HTTPException(status_code=503, detail="Database service unavailable")
+    
+    try:
+        # Verify work order exists
+        doc_ref = db.collection("workorders").document(work_order_id)
+        doc = doc_ref.get()
+        
+        if not doc.exists:
+            raise HTTPException(status_code=404, detail="Work order not found")
+        
+        wo_data = doc.to_dict()
+        technician_name = "Current User"  # In real app, get from auth
+        check_in_time = datetime.now().isoformat()
+        
+        # Check in technician
+        wo_data["checkedInTechnician"] = {
+            "name": technician_name,
+            "checkedInAt": check_in_time
+        }
+        
+        # Add note
+        if "notes" not in wo_data:
+            wo_data["notes"] = []
+        wo_data["notes"].append({
+            "id": str(uuid.uuid4()),
+            "text": f"{technician_name} checked in to work order.",
+            "author": technician_name,
+            "timestamp": check_in_time,
+            "type": "checkin_checkout"
+        })
+        
+        wo_data["updated_at"] = check_in_time
+        doc_ref.set(wo_data)
+        
+        logger.info(f"Technician checked in to work order {work_order_id}")
+        
+        return {"message": "Successfully checked in", "technician": technician_name, "time": check_in_time}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error checking in: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to check in: {str(e)}")
+
+@app.put("/workorders/{work_order_id}/checkout")
+async def technician_checkout(work_order_id: str):
+    """Check out a technician from a work order"""
+    if not db:
+        raise HTTPException(status_code=503, detail="Database service unavailable")
+    
+    try:
+        # Verify work order exists
+        doc_ref = db.collection("workorders").document(work_order_id)
+        doc = doc_ref.get()
+        
+        if not doc.exists:
+            raise HTTPException(status_code=404, detail="Work order not found")
+        
+        wo_data = doc.to_dict()
+        technician_name = "Current User"  # In real app, get from auth
+        check_out_time = datetime.now().isoformat()
+        
+        # Calculate hours worked
+        hours_worked = 0
+        if "checkedInTechnician" in wo_data and wo_data["checkedInTechnician"]:
+            check_in_time = datetime.fromisoformat(wo_data["checkedInTechnician"]["checkedInAt"])
+            check_out_dt = datetime.fromisoformat(check_out_time)
+            hours_worked = (check_out_dt - check_in_time).total_seconds() / 3600
+        
+        # Check out technician
+        wo_data["checkedInTechnician"] = None
+        wo_data["actualHours"] = wo_data.get("actualHours", 0) + hours_worked
+        
+        # Add note
+        if "notes" not in wo_data:
+            wo_data["notes"] = []
+        wo_data["notes"].append({
+            "id": str(uuid.uuid4()),
+            "text": f"{technician_name} checked out. Worked {hours_worked:.2f} hours.",
+            "author": technician_name,
+            "timestamp": check_out_time,
+            "type": "checkin_checkout"
+        })
+        
+        wo_data["updated_at"] = check_out_time
+        doc_ref.set(wo_data)
+        
+        logger.info(f"Technician checked out from work order {work_order_id}")
+        
+        return {
+            "message": "Successfully checked out", 
+            "technician": technician_name, 
+            "time": check_out_time,
+            "hoursWorked": hours_worked
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error checking out: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to check out: {str(e)}")
 
 # Parts Inventory Endpoints
 

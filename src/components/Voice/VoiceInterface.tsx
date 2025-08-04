@@ -129,7 +129,8 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
       
       // Handle work order updates
       if (activeWorkOrder && (lowerMessage.includes('problem') || lowerMessage.includes('issue') || lowerMessage.includes('broken') || lowerMessage.includes('leak'))) {
-        const aiResponse = await getAIResponse(`User reported: "${message}" on ${activeWorkOrder.asset.name}.`);
+        const assetName = activeWorkOrder.asset?.name || activeWorkOrder.assetName || 'unknown asset';
+        const aiResponse = await getAIResponse(`User reported: "${message}" on ${assetName}.`);
         
         onChatMessage({ type: 'user', message, timestamp: new Date() });
         onChatMessage({ type: 'ai', message: aiResponse, timestamp: new Date() });
@@ -142,7 +143,8 @@ const VoiceInterface: React.FC<VoiceInterfaceProps> = ({
       // Handle work order completion
       if (lowerMessage.includes('complete') || lowerMessage.includes('finished') || lowerMessage.includes('done')) {
         if (activeWorkOrder) {
-          const duration = Math.round((new Date().getTime() - activeWorkOrder.startTime.getTime()) / 60000);
+          const startTime = activeWorkOrder.startTime || new Date();
+          const duration = Math.round((new Date().getTime() - startTime.getTime()) / 60000);
           const updatedWorkOrder: WorkOrder = {
             ...activeWorkOrder,
             endTime: new Date(),

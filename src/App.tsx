@@ -172,12 +172,12 @@ const ChatterFixApp: React.FC = () => {
   });
 
   // Work Order Handlers
-  const handleWorkOrderCreate = (workOrder: WorkOrder) => {
+  const handleWorkOrderCreate = (workOrder: any) => {
     setActiveWorkOrder(workOrder);
     setWorkOrders(prev => [workOrder, ...prev]);
   };
 
-  const handleWorkOrderUpdate = (updatedWorkOrder: WorkOrder) => {
+  const handleWorkOrderUpdate = (updatedWorkOrder: any) => {
     setWorkOrders(prev => 
       prev.map(wo => wo.id === updatedWorkOrder.id ? updatedWorkOrder : wo)
     );
@@ -379,6 +379,9 @@ const ChatterFixApp: React.FC = () => {
                   workOrders={workOrders}
                   activeWorkOrderId={activeWorkOrder?.id}
                   onSelectWorkOrder={setActiveWorkOrder}
+                  onCreateWorkOrder={handleWorkOrderCreate}
+                  onUpdateWorkOrder={handleWorkOrderUpdate}
+                  getAIResponse={getAIResponse}
                 />
               </div>
               <ChatInterface 

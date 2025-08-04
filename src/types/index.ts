@@ -8,14 +8,42 @@ export interface Asset {
 
 export interface WorkOrder {
   id: string;
-  asset: Asset;
-  startTime: Date;
+  title?: string;
+  description?: string;
+  asset?: Asset | {
+    id: string;
+    name: string;
+    location: string;
+  };
+  assetName?: string;
+  location?: string;
+  priority?: string;
+  status: string;
+  assignedTo?: string;
+  createdBy?: string;
+  createdAt?: string | Date;
+  dueDate?: string;
+  estimatedHours?: number;
+  actualHours?: number;
+  startTime?: Date;
   endTime?: Date;
   duration?: number;
-  status: string;
-  technician: string;
-  description: string;
+  technician?: string;
   resolution?: string;
+  downtime?: {
+    started: string | null;
+    ended: string | null;
+    totalMinutes: number;
+  };
+  checkedInTechnician?: {
+    name: string;
+    checkedInAt: string;
+  } | null;
+  parts?: any[];
+  attachments?: any[];
+  notes?: any[];
+  procedures?: string[];
+  safetyNotes?: string[];
 }
 
 export interface ChatMessage {
