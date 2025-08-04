@@ -5,6 +5,7 @@ import {
   Package, Camera, FileText, Timer, Wrench, AlertCircle
 } from 'lucide-react';
 import SimpleWorkOrderForm from '../SimpleWorkOrderForm';
+import { EnhancedWorkOrderForm } from '../EnhancedWorkOrderForm';
 import { WorkOrder } from '../../types';
 
 interface WorkOrderEnhanced extends WorkOrder {
@@ -58,6 +59,22 @@ const WorkOrderList: React.FC<WorkOrderListProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [useEnhancedForm, setUseEnhancedForm] = useState(false);
+
+  // Mock data for enhanced form
+  const mockTechnicians = [
+    { id: '1', name: 'John Smith', status: 'available' },
+    { id: '2', name: 'Sarah Johnson', status: 'busy' },
+    { id: '3', name: 'Mike Davis', status: 'available' },
+    { id: '4', name: 'Lisa Wong', status: 'available' }
+  ];
+
+  const mockParts = [
+    { id: '1', name: 'Belt Drive', quantity: 15, location: 'A-1-3' },
+    { id: '2', name: 'Motor Bearing', quantity: 8, location: 'B-2-1' },
+    { id: '3', name: 'Control Panel', quantity: 3, location: 'C-1-2' },
+    { id: '4', name: 'Safety Switch', quantity: 12, location: 'A-3-4' }
+  ];
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -159,6 +176,33 @@ const WorkOrderList: React.FC<WorkOrderListProps> = ({
     setSelectedWorkOrder(undefined);
   };
 
+  const handleSaveEnhancedWorkOrder = (workOrder: Partial<WorkOrder>) => {
+    // Convert partial to full WorkOrder with required fields
+    const fullWorkOrder: WorkOrder = {
+      id: workOrder.id || Date.now().toString(),
+      status: workOrder.status || 'open',
+      title: workOrder.title,
+      description: workOrder.description,
+      priority: workOrder.priority,
+      assignedTo: workOrder.assignedTo,
+      assetName: workOrder.assetName,
+      estimatedHours: workOrder.estimatedHours,
+      createdAt: workOrder.createdAt,
+      dueDate: workOrder.dueDate,
+      notes: workOrder.notes,
+      attachments: workOrder.attachments,
+      downtime: workOrder.downtime
+    };
+    
+    if (managerMode === 'create' && onCreateWorkOrder) {
+      onCreateWorkOrder(fullWorkOrder);
+    } else if (managerMode === 'edit' && onUpdateWorkOrder) {
+      onUpdateWorkOrder(fullWorkOrder);
+    }
+    setShowWorkOrderManager(false);
+    setSelectedWorkOrder(undefined);
+  };
+
   const handleCancel = () => {
     setShowWorkOrderManager(false);
     setSelectedWorkOrder(undefined);
@@ -188,7 +232,15 @@ const WorkOrderList: React.FC<WorkOrderListProps> = ({
 
   // Show WorkOrderManager if open
   if (showWorkOrderManager) {
-    return (
+    return useEnhancedForm ? (
+      <EnhancedWorkOrderForm
+        workOrder={selectedWorkOrder}
+        onSave={handleSaveEnhancedWorkOrder}
+        onCancel={handleCancel}
+        technicians={mockTechnicians}
+        parts={mockParts}
+      />
+    ) : (
       <SimpleWorkOrderForm
         workOrder={selectedWorkOrder}
         onSave={handleSaveWorkOrder}
@@ -207,13 +259,24 @@ const WorkOrderList: React.FC<WorkOrderListProps> = ({
             <h2 className="text-lg font-semibold text-gray-900">Work Orders</h2>
             <p className="text-sm text-gray-600">{filteredWorkOrders.length} of {workOrders.length} orders</p>
           </div>
-          <button
-            onClick={handleCreateWorkOrder}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>New Work Order</span>
-          </button>
+          <div className="flex items-center space-x-3">
+            <label className="flex items-center space-x-2 text-sm">
+              <input
+                type="checkbox"
+                checked={useEnhancedForm}
+                onChange={(e) => setUseEnhancedForm(e.target.checked)}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span>Enhanced Form</span>
+            </label>
+            <button
+              onClick={handleCreateWorkOrder}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Work Order</span>
+            </button>
+          </div>
         </div>
 
         {/* Search and Filters */}
