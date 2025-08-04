@@ -1,19 +1,46 @@
 import React, { useState } from 'react';
 import { 
   Clock, User, MapPin, AlertTriangle, CheckCircle, 
-  Plus, Edit, Filter, Search, Calendar,
-  Package, Camera, FileText, Timer
+  Plus, Edit, Eye, Filter, Search, Calendar,
+  Package, Camera, FileText, Timer, Wrench, AlertCircle
 } from 'lucide-react';
-import SimpleWorkOrderForm from '../SimpleWorkOrderForm';
-import { EnhancedWorkOrderForm } from '../EnhancedWorkOrderForm';
+import WorkOrderManager from '../WorkOrderManager';
 import { WorkOrder } from '../../types';
 
+interface WorkOrderEnhanced extends WorkOrder {
+  asset?: {
+    id: string;
+    name: string;
+    location: string;
+  };
+  assignedTo?: string;
+  createdBy?: string;
+  createdAt?: string;
+  dueDate?: string;
+  estimatedHours?: number;
+  actualHours?: number;
+  downtime?: {
+    started: string | null;
+    ended: string | null;
+    totalMinutes: number;
+  };
+  checkedInTechnician?: {
+    name: string;
+    checkedInAt: string;
+  } | null;
+  parts?: any[];
+  attachments?: any[];
+  notes?: any[];
+  procedures?: string[];
+  safetyNotes?: string[];
+}
+
 interface WorkOrderListProps {
-  workOrders: WorkOrder[];
+  workOrders: WorkOrderEnhanced[];
   activeWorkOrderId?: string;
-  onSelectWorkOrder: (workOrder: WorkOrder) => void;
-  onCreateWorkOrder?: (workOrder: WorkOrder) => void;
-  onUpdateWorkOrder?: (workOrder: WorkOrder) => void;
+  onSelectWorkOrder: (workOrder: WorkOrderEnhanced) => void;
+  onCreateWorkOrder?: (workOrder: WorkOrderEnhanced) => void;
+  onUpdateWorkOrder?: (workOrder: WorkOrderEnhanced) => void;
   getAIResponse?: (prompt: string) => Promise<string>;
 }
 
@@ -26,27 +53,11 @@ const WorkOrderList: React.FC<WorkOrderListProps> = ({
   getAIResponse
 }) => {
   const [showWorkOrderManager, setShowWorkOrderManager] = useState(false);
-  const [selectedWorkOrder, setSelectedWorkOrder] = useState<WorkOrder | undefined>();
+  const [selectedWorkOrder, setSelectedWorkOrder] = useState<WorkOrderEnhanced | undefined>();
   const [managerMode, setManagerMode] = useState<'create' | 'edit' | 'view'>('view');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
-  const [useEnhancedForm, setUseEnhancedForm] = useState(false);
-
-  // Mock data for enhanced form
-  const mockTechnicians = [
-    { id: '1', name: 'John Smith', status: 'available' },
-    { id: '2', name: 'Sarah Johnson', status: 'busy' },
-    { id: '3', name: 'Mike Davis', status: 'available' },
-    { id: '4', name: 'Lisa Wong', status: 'available' }
-  ];
-
-  const mockParts = [
-    { id: '1', name: 'Belt Drive', quantity: 15, location: 'A-1-3' },
-    { id: '2', name: 'Motor Bearing', quantity: 8, location: 'B-2-1' },
-    { id: '3', name: 'Control Panel', quantity: 3, location: 'C-1-2' },
-    { id: '4', name: 'Safety Switch', quantity: 12, location: 'A-3-4' }
-  ];
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -100,20 +111,38 @@ const WorkOrderList: React.FC<WorkOrderListProps> = ({
     }
   };
 
+  const formatDuration = (minutes?: number) => {
+    if (!minutes) return 'N/A';
+    if (minutes < 60) return `${minutes} min`;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
+  };
+
+  const formatDate = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric'
+    });
+  };
+
   const handleCreateWorkOrder = () => {
     setSelectedWorkOrder(undefined);
     setManagerMode('create');
     setShowWorkOrderManager(true);
   };
 
-  const handleEditWorkOrder = (workOrder: WorkOrder, e: React.MouseEvent) => {
+  const handleEditWorkOrder = (workOrder: WorkOrderEnhanced, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedWorkOrder(workOrder);
     setManagerMode('edit');
     setShowWorkOrderManager(true);
   };
 
-  const handleViewWorkOrder = (workOrder: WorkOrder) => {
+  const handleViewWorkOrder = (workOrder: WorkOrderEnhanced) => {
     setSelectedWorkOrder(workOrder);
     setManagerMode('view');
     setShowWorkOrderManager(true);
@@ -121,37 +150,18 @@ const WorkOrderList: React.FC<WorkOrderListProps> = ({
   };
 
   const handleSaveWorkOrder = (workOrder: WorkOrder) => {
-    if (managerMode === 'create' && onCreateWorkOrder) {
-      onCreateWorkOrder(workOrder);
-    } else if (managerMode === 'edit' && onUpdateWorkOrder) {
-      onUpdateWorkOrder(workOrder);
-    }
-    setShowWorkOrderManager(false);
-    setSelectedWorkOrder(undefined);
-  };
-
-  const handleSaveEnhancedWorkOrder = (workOrder: Partial<WorkOrder>) => {
-    // Convert partial to full WorkOrder with required fields
-    const fullWorkOrder: WorkOrder = {
-      id: workOrder.id || Date.now().toString(),
-      status: workOrder.status || 'open',
-      title: workOrder.title,
-      description: workOrder.description,
-      priority: workOrder.priority,
-      assignedTo: workOrder.assignedTo,
-      assetName: workOrder.assetName,
-      estimatedHours: workOrder.estimatedHours,
-      createdAt: workOrder.createdAt,
-      dueDate: workOrder.dueDate,
-      notes: workOrder.notes,
-      attachments: workOrder.attachments,
-      downtime: workOrder.downtime
+    // Convert createdAt to string if it's a Date
+    const enhancedWorkOrder: WorkOrderEnhanced = {
+      ...workOrder,
+      createdAt:
+        workOrder.createdAt instanceof Date
+          ? workOrder.createdAt.toISOString()
+          : workOrder.createdAt,
     };
-    
     if (managerMode === 'create' && onCreateWorkOrder) {
-      onCreateWorkOrder(fullWorkOrder);
+      onCreateWorkOrder(enhancedWorkOrder);
     } else if (managerMode === 'edit' && onUpdateWorkOrder) {
-      onUpdateWorkOrder(fullWorkOrder);
+      onUpdateWorkOrder(enhancedWorkOrder);
     }
     setShowWorkOrderManager(false);
     setSelectedWorkOrder(undefined);
@@ -186,19 +196,12 @@ const WorkOrderList: React.FC<WorkOrderListProps> = ({
 
   // Show WorkOrderManager if open
   if (showWorkOrderManager) {
-    return useEnhancedForm ? (
-      <EnhancedWorkOrderForm
-        workOrder={selectedWorkOrder}
-        onSave={handleSaveEnhancedWorkOrder}
-        onCancel={handleCancel}
-        technicians={mockTechnicians}
-        parts={mockParts}
-      />
-    ) : (
-      <SimpleWorkOrderForm
+    return (
+      <WorkOrderManager
         workOrder={selectedWorkOrder}
         onSave={handleSaveWorkOrder}
         onCancel={handleCancel}
+        getAIResponse={getAIResponse}
         mode={managerMode}
       />
     );
@@ -213,24 +216,13 @@ const WorkOrderList: React.FC<WorkOrderListProps> = ({
             <h2 className="text-lg font-semibold text-gray-900">Work Orders</h2>
             <p className="text-sm text-gray-600">{filteredWorkOrders.length} of {workOrders.length} orders</p>
           </div>
-          <div className="flex items-center space-x-3">
-            <label className="flex items-center space-x-2 text-sm">
-              <input
-                type="checkbox"
-                checked={useEnhancedForm}
-                onChange={(e) => setUseEnhancedForm(e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span>Enhanced Form</span>
-            </label>
-            <button
-              onClick={handleCreateWorkOrder}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
-            >
-              <Plus className="w-4 h-4" />
-              <span>New Work Order</span>
-            </button>
-          </div>
+          <button
+            onClick={handleCreateWorkOrder}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Work Order</span>
+          </button>
         </div>
 
         {/* Search and Filters */}
@@ -339,7 +331,7 @@ const WorkOrderList: React.FC<WorkOrderListProps> = ({
                       <span>{workOrder.assignedTo || 'Unassigned'}</span>
                     </div>
                     
-                    <div className="flex items-center text-xs text-gray-600">
+                                      <div className="flex items-center text-xs text-gray-600">
                       <Calendar className="w-3 h-3 mr-1" />
                       <span>Due: {workOrder.dueDate ? new Date(workOrder.dueDate).toLocaleDateString() : 'No due date'}</span>
                     </div>

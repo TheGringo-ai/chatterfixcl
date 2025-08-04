@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { 
   Save, X, Clock, User, MapPin, AlertTriangle, 
-  FileText, Plus, Edit
+  FileText, Plus, Edit, Camera
 } from 'lucide-react';
 import { WorkOrder } from '../types';
+import PhotoUpload from './PhotoUpload';
 
 interface SimpleWorkOrderFormProps {
   workOrder?: WorkOrder;
@@ -29,6 +30,7 @@ const SimpleWorkOrderForm: React.FC<SimpleWorkOrderFormProps> = ({
     assignedTo: workOrder?.assignedTo || workOrder?.technician || '',
     estimatedHours: workOrder?.estimatedHours || 0,
     createdAt: workOrder?.createdAt || new Date().toISOString(),
+    attachments: workOrder?.attachments || [],
   });
 
   const [isEditing, setIsEditing] = useState(mode === 'create');
@@ -51,7 +53,8 @@ const SimpleWorkOrderForm: React.FC<SimpleWorkOrderFormProps> = ({
       },
       technician: formData.assignedTo,
       startTime: new Date(),
-      createdAt: formData.createdAt
+      createdAt: formData.createdAt,
+      attachments: formData.attachments
     };
 
     onSave(workOrderData);
@@ -282,6 +285,22 @@ const SimpleWorkOrderForm: React.FC<SimpleWorkOrderFormProps> = ({
               )}
             </div>
           </div>
+        </div>
+
+        {/* Photo Upload Section */}
+        <div className="mt-8 border-t pt-6">
+          <div className="flex items-center space-x-2 mb-4">
+            <Camera className="w-5 h-5 text-gray-500" />
+            <h3 className="text-lg font-medium text-gray-900">Photos & Attachments</h3>
+          </div>
+          
+          <PhotoUpload
+            workOrderId={formData.id}
+            attachments={formData.attachments}
+            onPhotosChange={(attachments) => handleInputChange('attachments', attachments)}
+            readOnly={!isEditing}
+            currentUser={formData.assignedTo || 'Current User'}
+          />
         </div>
       </div>
 

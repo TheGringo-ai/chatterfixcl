@@ -15,7 +15,9 @@ import LoadingSpinner from './components/LoadingSpinner';
 import VoiceInterface from './components/Voice/VoiceInterface';
 import OCRScanner from './components/OCR/OCRScanner';
 import ChatInterface from './components/Chat/ChatInterface';
+import TechnicianWorkOrderView from './components/TechnicianWorkOrderView';
 import WorkOrderList from './components/WorkOrder/WorkOrderList';
+import AIChat from './components/AIChat';
 
 // Contexts and Hooks
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -225,7 +227,7 @@ const ChatterFixApp: React.FC = () => {
                     }}
                     className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
                   >
-                    Try Full App
+                    Try Full App with Chat
                   </button>
                 </div>
               </div>
@@ -306,7 +308,7 @@ const ChatterFixApp: React.FC = () => {
         <nav className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex space-x-8">
-              {['voice', 'ocr', 'assets', 'inventory', 'manager', 'documents'].map((view) => (
+              {['voice', 'technician', 'ocr', 'assets', 'inventory', 'documents'].map((view) => (
                 <button
                   key={view}
                   onClick={() => setCurrentView(view)}
@@ -318,7 +320,7 @@ const ChatterFixApp: React.FC = () => {
                 >
                   {view === 'ocr' ? 'OCR Scanner' : 
                    view === 'inventory' ? 'Parts Inventory' : 
-                   view === 'manager' ? 'Manager Dashboard' : view}
+                   view === 'technician' ? 'Technician View' : view}
                 </button>
               ))}
             </div>
@@ -348,8 +350,8 @@ const ChatterFixApp: React.FC = () => {
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {currentView === 'voice' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-6">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              <div className="xl:col-span-1 space-y-6">
                 <VoiceInterface
                   assets={assets}
                   activeWorkOrder={activeWorkOrder}
@@ -367,11 +369,33 @@ const ChatterFixApp: React.FC = () => {
                   getAIResponse={getAIResponse}
                 />
               </div>
-              <ChatInterface 
-                messages={chatHistory} 
-                isProcessing={isProcessingAI}
-              />
+              <div className="xl:col-span-1">
+                <ChatInterface 
+                  messages={chatHistory} 
+                  isProcessing={isProcessingAI}
+                />
+              </div>
+              <div className="xl:col-span-1">
+                <AIChat
+                  onWorkOrderCreate={handleWorkOrderCreate}
+                  getAIResponse={getAIResponse}
+                  context={activeWorkOrder ? `Active work order: ${activeWorkOrder.description || activeWorkOrder.title}` : 'Voice interface'}
+                  placeholder="Create work orders, ask questions, or get maintenance help..."
+                  title="Work Order Assistant"
+                />
+              </div>
             </div>
+          )}
+
+          {currentView === 'technician' && (
+            <TechnicianWorkOrderView
+              workOrders={workOrders}
+              activeWorkOrder={activeWorkOrder}
+              onWorkOrderUpdate={handleWorkOrderUpdate}
+              onWorkOrderCreate={handleWorkOrderCreate}
+              currentTechnician={user?.name || 'Current Technician'}
+              getAIResponse={getAIResponse}
+            />
           )}
 
           {currentView === 'ocr' && (
@@ -393,10 +417,6 @@ const ChatterFixApp: React.FC = () => {
 
           {currentView === 'inventory' && (
             <PartsInventory />
-          )}
-
-          {currentView === 'manager' && (
-            <ManagerDashboard getAIResponse={getAIResponse} />
           )}
 
           {currentView === 'documents' && (

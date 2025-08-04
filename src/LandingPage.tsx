@@ -36,7 +36,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterDemo, getA
               <span className="text-xl font-bold text-gray-900">ChatterFix</span>
             </div>
             <button
-              onClick={onEnterApp}
+              onClick={onEnterDemo}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200"
             >
               Try Demo
@@ -87,23 +87,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterDemo, getA
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <button
-                onClick={onEnterApp}
+                onClick={onEnterDemo}
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2"
               >
                 <Play className="w-5 h-5" />
                 <span>Try Live Demo</span>
                 <ArrowRight className="w-5 h-5" />
               </button>
-              {onEnterDemo && (
-                <button
-                  onClick={onEnterDemo}
-                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold px-8 py-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2"
-                >
-                  <BarChart3 className="w-5 h-5" />
-                  <span>Manager Dashboard</span>
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-              )}
               <button
                 onClick={() => document.getElementById('roi-calculator')?.scrollIntoView({ behavior: 'smooth' })}
                 className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium px-8 py-4 rounded-lg transition-all duration-200 flex items-center space-x-2"
@@ -138,14 +128,24 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterDemo, getA
             Our AI agent is here to help with technical questions about equipment, SQF industry practices, 
             predictive maintenance, and more.
           </p>
-          <button
-            onClick={() => setShowDemoChat(true)}
-            className="bg-white text-blue-600 hover:bg-gray-50 font-bold px-10 py-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-3 mx-auto text-lg"
-          >
-            <MessageCircle className="w-6 h-6" />
-            <span>Talk to Our Agent</span>
-            <Bot className="w-6 h-6" />
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <button
+              onClick={() => setShowDemoChat(true)}
+              className="bg-white text-blue-600 hover:bg-gray-50 font-bold px-8 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-3 text-lg"
+            >
+              <MessageCircle className="w-5 h-5" />
+              <span>Try AI Chat Demo</span>
+              <Bot className="w-5 h-5" />
+            </button>
+            <button
+              onClick={onEnterApp}
+              className="bg-blue-600 text-white hover:bg-blue-700 font-bold px-8 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-3 text-lg"
+            >
+              <Zap className="w-5 h-5" />
+              <span>Try Full Platform</span>
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
           <p className="text-blue-200 text-sm mt-4">
             Get instant answers about maintenance best practices, equipment troubleshooting, and platform features
           </p>
@@ -496,7 +496,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterDemo, getA
 
           <div className="mb-8">
             <button
-              onClick={onEnterApp}
+              onClick={onEnterDemo}
               className="bg-white text-blue-600 hover:bg-gray-50 font-bold px-12 py-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-lg"
             >
               Try Live Demo Now - Free
