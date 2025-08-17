@@ -249,7 +249,7 @@ const EnhancedWorkOrderDetail: React.FC<EnhancedWorkOrderDetailProps> = ({
                     </div>
                     <div>
                       <span className="text-sm font-medium text-gray-700">Status:</span>
-                      <p className="text-gray-900">{workOrder.asset.status}</p>
+                      <p className="text-gray-900">{('status' in workOrder.asset) ? workOrder.asset.status : 'Unknown'}</p>
                     </div>
                   </div>
                 ) : (
