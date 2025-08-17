@@ -30,8 +30,7 @@ const EnhancedWorkOrderDetail: React.FC<EnhancedWorkOrderDetailProps> = ({
   const [editData, setEditData] = useState({
     title: workOrder.title || '',
     description: workOrder.description || '',
-    priority: workOrder.priority || 'medium',
-    notes: workOrder.notes || []
+    priority: workOrder.priority || 'medium'
   });
 
   const handleSave = () => {
@@ -48,8 +47,7 @@ const EnhancedWorkOrderDetail: React.FC<EnhancedWorkOrderDetailProps> = ({
     setEditData({
       title: workOrder.title || '',
       description: workOrder.description || '',
-      priority: workOrder.priority || 'medium',
-      notes: workOrder.notes || []
+      priority: workOrder.priority || 'medium'
     });
     setIsEditing(false);
   };
@@ -261,19 +259,19 @@ const EnhancedWorkOrderDetail: React.FC<EnhancedWorkOrderDetailProps> = ({
             {/* Notes Section */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Notes</h3>
-              {isEditing ? (
-                <textarea
-                  value={editData.notes}
-                  onChange={(e) => setEditData({ ...editData, notes: e.target.value })}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Add notes about this work order..."
-                />
-              ) : (
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-gray-900">{workOrder.notes || 'No notes available'}</p>
-                </div>
-              )}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                {workOrder.notes && workOrder.notes.length > 0 ? (
+                  <div className="space-y-2">
+                    {workOrder.notes.map((note: any, index: number) => (
+                      <div key={index} className="text-gray-900">
+                        {typeof note === 'string' ? note : note.content || note}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">No notes available</p>
+                )}
+              </div>
             </div>
 
             {/* Timeline */}
