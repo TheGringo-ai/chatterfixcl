@@ -37,16 +37,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ onManagerDemo, onTechnicianDe
               </div>
               <span className="text-xl font-bold text-gray-900">ChatterFix</span>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-6">
               <button
                 onClick={onManagerDemo}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium transition-colors duration-200 shadow-md"
               >
                 Manager Demo
               </button>
               <button
                 onClick={onTechnicianDemo}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg font-medium transition-colors duration-200"
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-8 py-3 rounded-lg font-medium transition-colors duration-200 shadow-md"
               >
                 Technician Demo
               </button>
@@ -56,7 +56,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onManagerDemo, onTechnicianDe
       </nav>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-50 to-indigo-100 py-20 lg:py-32">
+      <section className="bg-gradient-to-br from-blue-50 to-indigo-100 py-24 lg:py-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             {/* Badge */}
@@ -73,10 +73,22 @@ const LandingPage: React.FC<LandingPageProps> = ({ onManagerDemo, onTechnicianDe
             </h1>
 
             {/* Subheadline */}
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
               The first AI maintenance assistant that actually understands your business. 
               Create custom fields, generate reports, and prevent failures with natural language commands.
             </p>
+            
+            {/* Value Proposition */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-12 max-w-4xl mx-auto shadow-lg border border-white/20">
+              <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                🎯 Perfect for Manufacturing, Healthcare, Facilities, and Fleet Management
+              </h3>
+              <p className="text-lg text-gray-700 leading-relaxed">
+                Unlike traditional CMMS software that takes months to customize, ChatterFix AI adapts to your business instantly. 
+                Just tell it what you need: <span className="font-semibold italic">"Track energy efficiency for all motors"</span> and 
+                it creates the perfect custom fields, reports, and workflows automatically.
+              </p>
+            </div>
 
             {/* ROI Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
@@ -95,22 +107,44 @@ const LandingPage: React.FC<LandingPageProps> = ({ onManagerDemo, onTechnicianDe
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-              <button
-                onClick={onManagerDemo}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-2"
-              >
-                <Play className="w-5 h-5" />
-                <span>Try Live Demo</span>
-                <ArrowRight className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => document.getElementById('roi-calculator')?.scrollIntoView({ behavior: 'smooth' })}
-                className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium px-8 py-4 rounded-lg transition-all duration-200 flex items-center space-x-2"
-              >
-                <DollarSign className="w-5 h-5" />
-                <span>Calculate Your Savings</span>
-              </button>
+            <div className="mb-16">
+              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-6">
+                <button
+                  onClick={onManagerDemo}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-10 py-5 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-3 text-lg"
+                >
+                  <Play className="w-6 h-6" />
+                  <span>Try Live Demo</span>
+                  <ArrowRight className="w-6 h-6" />
+                </button>
+                <button
+                  onClick={() => document.getElementById('roi-calculator')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="bg-white border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-medium px-10 py-5 rounded-lg transition-all duration-200 flex items-center space-x-3 text-lg shadow-md"
+                >
+                  <DollarSign className="w-6 h-6" />
+                  <span>Calculate Your Savings</span>
+                </button>
+              </div>
+              
+              <div className="text-center">
+                <p className="text-gray-600 mb-4">Choose your role to see the most relevant features:</p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                  <button
+                    onClick={onTechnicianDemo}
+                    className="bg-green-50 border border-green-200 text-green-800 hover:bg-green-100 font-medium px-6 py-3 rounded-lg transition-all duration-200 flex items-center space-x-2"
+                  >
+                    <Users className="w-5 h-5" />
+                    <span>I'm a Technician</span>
+                  </button>
+                  <button
+                    onClick={onEnterApp}
+                    className="bg-purple-50 border border-purple-200 text-purple-800 hover:bg-purple-100 font-medium px-6 py-3 rounded-lg transition-all duration-200 flex items-center space-x-2"
+                  >
+                    <Zap className="w-5 h-5" />
+                    <span>I want to try everything</span>
+                  </button>
+                </div>
+              </div>
             </div>
 
             {/* Trust Indicators */}
@@ -128,7 +162,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onManagerDemo, onTechnicianDe
       </section>
 
       {/* Learn More Section */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
             Would you like to learn more?
@@ -138,32 +172,32 @@ const LandingPage: React.FC<LandingPageProps> = ({ onManagerDemo, onTechnicianDe
             Our AI agent is here to help with technical questions about equipment, SQF industry practices, 
             predictive maintenance, and more.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
             <button
               onClick={() => setShowDemoChat(true)}
-              className="bg-white text-blue-600 hover:bg-gray-50 font-bold px-8 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-3 text-lg"
+              className="bg-white text-blue-600 hover:bg-gray-50 font-bold px-10 py-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-3 text-lg"
             >
-              <MessageCircle className="w-5 h-5" />
-              <span>Try AI Chat Demo</span>
-              <Bot className="w-5 h-5" />
+              <MessageCircle className="w-6 h-6" />
+              <span>Ask AI Questions</span>
+              <Bot className="w-6 h-6" />
             </button>
             <button
               onClick={onEnterApp}
-              className="bg-blue-600 text-white hover:bg-blue-700 font-bold px-8 py-3 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-3 text-lg"
+              className="bg-blue-700 border-2 border-blue-400 text-white hover:bg-blue-800 font-bold px-10 py-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-3 text-lg"
             >
-              <Zap className="w-5 h-5" />
+              <Zap className="w-6 h-6" />
               <span>Try Full Platform</span>
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-6 h-6" />
             </button>
           </div>
-          <p className="text-blue-200 text-sm mt-4">
+          <p className="text-blue-200 text-sm mt-6">
             Get instant answers about maintenance best practices, equipment troubleshooting, and platform features
           </p>
         </div>
       </section>
 
       {/* Industry Impact Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
@@ -507,9 +541,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onManagerDemo, onTechnicianDe
           <div className="mb-8">
             <button
               onClick={onManagerDemo}
-              className="bg-white text-blue-600 hover:bg-gray-50 font-bold px-12 py-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-lg"
+              className="bg-white text-blue-600 hover:bg-gray-50 font-bold px-12 py-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-xl"
             >
-              Try Live Demo Now - Free
+              🚀 Try Live Demo Now - Free
             </button>
           </div>
 
