@@ -326,10 +326,14 @@ const EnhancedWorkOrderDetail: React.FC<EnhancedWorkOrderDetailProps> = ({
         {activeTab === 'photos' && (
           <div>
             <PhotoUpload
-              onPhotoUploaded={(photoUrl) => {
-                console.log('Photo uploaded:', photoUrl);
-                // Handle photo upload
+              workOrderId={workOrder.id}
+              attachments={workOrder.attachments || []}
+              onPhotosChange={(attachments) => {
+                const updatedWorkOrder: WorkOrder = { ...workOrder, attachments };
+                onWorkOrderUpdate(updatedWorkOrder);
               }}
+              currentUser={currentUserId}
+              readOnly={false}
             />
           </div>
         )}
