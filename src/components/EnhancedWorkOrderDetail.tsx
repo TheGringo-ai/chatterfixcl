@@ -35,7 +35,7 @@ const EnhancedWorkOrderDetail: React.FC<EnhancedWorkOrderDetailProps> = ({
   });
 
   const handleSave = () => {
-    const updatedWorkOrder = {
+    const updatedWorkOrder: WorkOrder = {
       ...workOrder,
       ...editData,
       updatedAt: new Date().toISOString()
