@@ -18,13 +18,14 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy requirements first for better Docker layer caching
-COPY requirements-prod.txt requirements.txt
+COPY api/requirements-prod.txt requirements.txt
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY . .
+COPY api/ .
+COPY database/ ./database/
 
 # Create non-root user for security
 RUN useradd --create-home --shell /bin/bash chatterfix && \
