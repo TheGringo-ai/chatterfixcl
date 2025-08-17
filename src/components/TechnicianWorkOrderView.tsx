@@ -36,9 +36,13 @@ const TechnicianWorkOrderView: React.FC<TechnicianWorkOrderViewProps> = ({
     setShowCreateForm(false);
   };
 
-  // Get technician's work orders
-  const technicianWorkOrders = workOrders.filter(wo => 
+  // Get technician's work orders and available unassigned orders
+  const assignedWorkOrders = workOrders.filter(wo => 
     wo.assignedTo === currentTechnician || wo.technician === currentTechnician
+  );
+  
+  const unassignedWorkOrders = workOrders.filter(wo => 
+    !wo.assignedTo && wo.status !== 'completed' && wo.status !== 'cancelled'
   );
 
   const handleCheckIn = (workOrder: WorkOrder) => {
@@ -89,6 +93,26 @@ const TechnicianWorkOrderView: React.FC<TechnicianWorkOrderViewProps> = ({
     }
   };
 
+  const handleTakeWorkOrder = (workOrder: WorkOrder) => {
+    const updatedWorkOrder = {
+      ...workOrder,
+      assignedTo: currentTechnician,
+      status: 'assigned',
+      notes: [
+        ...(workOrder.notes || []),
+        {
+          id: `note-${Date.now()}`,
+          content: `Work order picked up by ${currentTechnician}`,
+          createdBy: currentTechnician,
+          createdAt: new Date().toISOString(),
+          type: 'assignment'
+        }
+      ]
+    };
+    onWorkOrderUpdate(updatedWorkOrder);
+    setSelectedWorkOrder(updatedWorkOrder);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800';
@@ -121,7 +145,13 @@ const TechnicianWorkOrderView: React.FC<TechnicianWorkOrderViewProps> = ({
           </div>
           <div className="flex items-center space-x-4">
             <span className="text-sm text-gray-500">
-              Active Work Orders: {technicianWorkOrders.filter(wo => wo.status === 'in-progress').length}
+              My Work Orders: {assignedWorkOrders.length}
+            </span>
+            <span className="text-sm text-gray-500">
+              Available: {unassignedWorkOrders.length}
+            </span>
+            <span className="text-sm text-gray-500">
+              Active: {assignedWorkOrders.filter(wo => wo.status === 'in-progress').length}
             </span>
             <button
               onClick={() => setShowCreateForm(true)}
@@ -136,17 +166,19 @@ const TechnicianWorkOrderView: React.FC<TechnicianWorkOrderViewProps> = ({
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         {/* Work Orders List */}
-        <div className="xl:col-span-1 space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900">My Work Orders</h2>
-          
-          {technicianWorkOrders.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <Wrench className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">No work orders assigned</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {technicianWorkOrders.map((workOrder) => (
+        <div className="xl:col-span-1 space-y-6">
+          {/* My Assigned Work Orders */}
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">My Work Orders</h2>
+            
+            {assignedWorkOrders.length === 0 ? (
+              <div className="bg-white rounded-lg shadow-md p-6 text-center">
+                <Wrench className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">No work orders assigned</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {assignedWorkOrders.map((workOrder) => (
                 <div
                   key={workOrder.id}
                   className={`bg-white rounded-lg shadow-md p-4 cursor-pointer transition-all ${
@@ -210,6 +242,64 @@ const TechnicianWorkOrderView: React.FC<TechnicianWorkOrderViewProps> = ({
               ))}
             </div>
           )}
+          </div>
+
+          {/* Available Work Orders */}
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Available Work Orders</h2>
+            
+            {unassignedWorkOrders.length === 0 ? (
+              <div className="bg-white rounded-lg shadow-md p-6 text-center">
+                <CheckCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">No unassigned work orders</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {unassignedWorkOrders.map((workOrder) => (
+                  <div
+                    key={workOrder.id}
+                    className="bg-white rounded-lg shadow-md p-4 border-l-4 border-orange-400 hover:shadow-lg transition-all"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-medium text-gray-900 truncate">
+                        {workOrder.title || workOrder.description || 'Untitled Work Order'}
+                      </h3>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(workOrder.status)}`}>
+                        {workOrder.status}
+                      </span>
+                    </div>
+                    
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <div className="flex items-center">
+                        <FileText className="w-4 h-4 mr-2" />
+                        <span>{workOrder.asset?.name || workOrder.assetName || 'No asset'}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <MapPin className="w-4 h-4 mr-2" />
+                        <span>{workOrder.asset?.location || workOrder.location || 'No location'}</span>
+                      </div>
+                      {workOrder.priority && (
+                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(workOrder.priority)}`}>
+                          {workOrder.priority} priority
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Take Work Order Button */}
+                    <div className="mt-3">
+                      <button
+                        onClick={() => handleTakeWorkOrder(workOrder)}
+                        className="w-full bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 flex items-center justify-center space-x-2"
+                      >
+                        <User className="w-4 h-4" />
+                        <span>Take This Work Order</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Work Order Details */}

@@ -19,6 +19,7 @@ import OCRScanner from './components/OCR/OCRScanner';
 import ChatInterface from './components/Chat/ChatInterface';
 import TechnicianWorkOrderView from './components/TechnicianWorkOrderView';
 import WorkOrderList from './components/WorkOrder/WorkOrderList';
+import WorkOrderDashboard from './components/WorkOrderDashboard';
 import AIChat from './components/AIChat';
 import OnboardingGuide from './components/OnboardingGuide';
 import EnhancedWorkOrderDetail from './components/EnhancedWorkOrderDetail';
@@ -320,7 +321,7 @@ const ChatterFixApp: React.FC = () => {
         <nav className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex space-x-8">
-              {['voice', 'technician', 'ocr', 'assets', 'inventory', 'documents', 'financials', 'preventive-maintenance'].map((view) => (
+              {['voice', 'work-orders', 'technician', 'ocr', 'assets', 'inventory', 'documents', 'financials', 'preventive-maintenance'].map((view) => (
                 <button
                   key={view}
                   id={view === 'technician' ? 'technician-view-nav' : `${view}-nav`}
@@ -331,7 +332,12 @@ const ChatterFixApp: React.FC = () => {
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  {view === 'ocr' ? 'OCR Scanner' : view === 'inventory' ? 'Parts Inventory' : view === 'technician' ? 'Technician Dashboard' : view === 'financials' ? 'Financials & Workflow' : view === 'preventive-maintenance' ? 'PM Schedule' : view}
+                  {view === 'ocr' ? 'OCR Scanner' : 
+                   view === 'inventory' ? 'Parts Inventory' : 
+                   view === 'technician' ? 'Technician Dashboard' : 
+                   view === 'work-orders' ? 'Work Orders' :
+                   view === 'financials' ? 'Financials & Workflow' : 
+                   view === 'preventive-maintenance' ? 'PM Schedule' : view}
                 </button>
               ))}
             </div>
@@ -374,6 +380,8 @@ const ChatterFixApp: React.FC = () => {
               </div>
             </div>
           )}
+
+          {currentView === 'work-orders' && <WorkOrderDashboard workOrders={workOrders} onWorkOrderCreate={handleWorkOrderCreate} onWorkOrderUpdate={handleWorkOrderUpdate} getAIResponse={getAIResponse} currentUser={user?.name || 'Current User'} userRole={user?.role || 'manager'} />}
 
           {currentView === 'technician' && <TechnicianWorkOrderView workOrders={workOrders} activeWorkOrder={activeWorkOrder} onWorkOrderUpdate={handleWorkOrderUpdate} onWorkOrderCreate={handleWorkOrderCreate} currentTechnician={user?.name || 'Current Technician'} getAIResponse={getAIResponse} />}
 
