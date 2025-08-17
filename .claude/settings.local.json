@@ -34,7 +34,8 @@
       "Bash(gcloud firestore databases create:*)",
       "Bash(git commit:*)",
       "Bash(gh run list:*)",
-      "Bash(gh run view:*)"
+      "Bash(gh run view:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []
