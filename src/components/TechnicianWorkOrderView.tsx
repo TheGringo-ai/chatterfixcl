@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { 
   Camera, User, Clock, MapPin, AlertTriangle, CheckCircle,
   Play, Pause, Square, Plus, Edit, Save, X, FileText,
-  Wrench, Package, Timer, MessageSquare
+  Wrench, Package, Timer, MessageSquare, Mic, ScanLine
 } from 'lucide-react';
 import { WorkOrder } from '../types';
 import PhotoUpload from './PhotoUpload';
 import AIChat from './AIChat';
+import VoiceWorkOrderManager from './VoiceWorkOrderManager';
 
 interface TechnicianWorkOrderViewProps {
   workOrders: WorkOrder[];
@@ -31,6 +32,8 @@ const TechnicianWorkOrderView: React.FC<TechnicianWorkOrderViewProps> = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [notes, setNotes] = useState('');
   const [resolution, setResolution] = useState('');
+  const [showVoiceUpdate, setShowVoiceUpdate] = useState(false);
+  const [showVoiceComplete, setShowVoiceComplete] = useState(false);
 
   const handleCancelCreate = () => {
     setShowCreateForm(false);
@@ -133,6 +136,64 @@ const TechnicianWorkOrderView: React.FC<TechnicianWorkOrderViewProps> = ({
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
+
+  // Handle voice update mode
+  if (showVoiceUpdate && selectedWorkOrder) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900">Voice Work Order Update</h1>
+          <button
+            onClick={() => setShowVoiceUpdate(false)}
+            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+        
+        <VoiceWorkOrderManager
+          workOrder={selectedWorkOrder}
+          onWorkOrderUpdate={(updatedWorkOrder) => {
+            onWorkOrderUpdate(updatedWorkOrder);
+            setSelectedWorkOrder(updatedWorkOrder);
+            setShowVoiceUpdate(false);
+          }}
+          getAIResponse={getAIResponse}
+          currentUser={currentTechnician}
+          mode="update"
+        />
+      </div>
+    );
+  }
+
+  // Handle voice completion mode
+  if (showVoiceComplete && selectedWorkOrder) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900">Voice Work Order Completion</h1>
+          <button
+            onClick={() => setShowVoiceComplete(false)}
+            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+        
+        <VoiceWorkOrderManager
+          workOrder={selectedWorkOrder}
+          onWorkOrderUpdate={(completedWorkOrder) => {
+            onWorkOrderUpdate(completedWorkOrder);
+            setSelectedWorkOrder(null);
+            setShowVoiceComplete(false);
+          }}
+          getAIResponse={getAIResponse}
+          currentUser={currentTechnician}
+          mode="complete"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -361,6 +422,27 @@ const TechnicianWorkOrderView: React.FC<TechnicianWorkOrderViewProps> = ({
                     <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">{selectedWorkOrder.description}</p>
                   </div>
                 )}
+
+                {/* Voice Action Buttons */}
+                <div className="flex space-x-4 mb-6">
+                  <button
+                    onClick={() => setShowVoiceUpdate(true)}
+                    className="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 flex items-center justify-center space-x-2"
+                  >
+                    <Mic className="w-5 h-5" />
+                    <span>Voice Update</span>
+                  </button>
+                  
+                  {selectedWorkOrder.status === 'in-progress' && (
+                    <button
+                      onClick={() => setShowVoiceComplete(true)}
+                      className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 flex items-center justify-center space-x-2"
+                    >
+                      <CheckCircle className="w-5 h-5" />
+                      <span>Voice Complete</span>
+                    </button>
+                  )}
+                </div>
 
                 {/* Timer and Notes (for active work orders) */}
                 {selectedWorkOrder.status === 'in-progress' && (

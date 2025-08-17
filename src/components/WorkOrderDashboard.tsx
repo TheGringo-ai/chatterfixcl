@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { 
   ClipboardList, Users, Clock, AlertTriangle, CheckCircle, 
   Plus, Search, Filter, Edit, Trash2, UserPlus, Calendar,
-  MapPin, Wrench, FileText, Star, Timer, Play, Square
+  MapPin, Wrench, FileText, Star, Timer, Play, Square, Mic
 } from 'lucide-react';
 import { WorkOrder } from '../types';
 import WorkOrderManager from './WorkOrderManager';
+import VoiceWorkOrderManager from './VoiceWorkOrderManager';
 
 interface WorkOrderDashboardProps {
   workOrders: WorkOrder[];
@@ -38,6 +39,7 @@ const WorkOrderDashboard: React.FC<WorkOrderDashboardProps> = ({
 }) => {
   const [selectedWorkOrder, setSelectedWorkOrder] = useState<WorkOrder | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showVoiceCreate, setShowVoiceCreate] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
@@ -168,6 +170,32 @@ const WorkOrderDashboard: React.FC<WorkOrderDashboardProps> = ({
     );
   }
 
+  if (showVoiceCreate) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900">Voice Work Order Creation</h1>
+          <button
+            onClick={() => setShowVoiceCreate(false)}
+            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+        
+        <VoiceWorkOrderManager
+          onWorkOrderUpdate={(newWorkOrder) => {
+            onWorkOrderCreate(newWorkOrder);
+            setShowVoiceCreate(false);
+          }}
+          getAIResponse={getAIResponse!}
+          currentUser={currentUser}
+          mode="create"
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -177,13 +205,22 @@ const WorkOrderDashboard: React.FC<WorkOrderDashboardProps> = ({
             <h1 className="text-2xl font-bold text-gray-900">Work Order Management</h1>
             <p className="text-gray-600">Manage and track all maintenance work orders</p>
           </div>
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Create Work Order</span>
-          </button>
+          <div className="flex space-x-3">
+            <button
+              onClick={() => setShowVoiceCreate(true)}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2"
+            >
+              <Mic className="w-4 h-4" />
+              <span>Voice Create</span>
+            </button>
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create Work Order</span>
+            </button>
+          </div>
         </div>
       </div>
 

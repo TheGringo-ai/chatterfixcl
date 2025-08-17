@@ -35,7 +35,11 @@
       "Bash(git commit:*)",
       "Bash(gh run list:*)",
       "Bash(gh run view:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(gcloud projects add-iam-policy-binding:*)",
+      "Bash(gh run rerun:*)",
+      "Bash(curl:*)",
+      "WebFetch(domain:chatterfix.netlify.app)"
     ],
     "deny": [],
     "ask": []

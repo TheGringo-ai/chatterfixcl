@@ -151,25 +151,70 @@ const ChatterFixApp: React.FC = () => {
     }
   }, [assets, inventory, workOrders, companyInfo, isAuthenticated, isLoadingData, handleError]);
 
-  const apiUrl = process.env.REACT_APP_LLAMA_API_URL || 'http://localhost:8000';
+  // Support multiple AI endpoints: local Llama, online Llama, or fallback
+  const llamaApiUrl = process.env.REACT_APP_LLAMA_API_URL || 'http://localhost:8000';
+  const backendApiUrl = process.env.REACT_APP_API_BASE || 'https://chatterfix-api-650169261019.us-central1.run.app';
 
   const getAIResponse = async (prompt: string, context?: string): Promise<string> => {
     setIsProcessingAI(true);
     try {
-      const response = await fetch(`${apiUrl}/chat`, {
+      // First try online Llama API if configured
+      if (llamaApiUrl && llamaApiUrl !== 'http://localhost:8000') {
+        try {
+          const response = await fetch(`${llamaApiUrl}/chat`, {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({ 
+              prompt: context ? `Context: ${context}\n\nUser: ${prompt}` : prompt,
+              context: context || '',
+              max_tokens: 500,
+              temperature: 0.7
+            }),
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            return data.response || data.content || data.message || 'AI response received.';
+          }
+        } catch (llamaError) {
+          console.log('Llama API unavailable, trying backend:', llamaError);
+        }
+      }
+
+      // Fallback to backend AI service
+      const response = await fetch(`${backendApiUrl}/api/ai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, context }),
+        body: JSON.stringify({ 
+          prompt: context ? `Context: ${context}\n\nQuery: ${prompt}` : prompt,
+          context,
+          model: 'maintenance-assistant'
+        }),
       });
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        throw new Error(`Backend AI error: ${response.status}`);
       }
+
       const data = await response.json();
-      return data.response || 'Sorry, I could not process your request.';
+      return data.response || data.content || 'AI processing completed.';
+
     } catch (error: any) {
-      handleError(error);
-      return 'Sorry, I\'m having trouble connecting right now. Please try again.';
+      console.error('AI Response error:', error);
+      
+      // Provide helpful fallback responses based on prompt content
+      if (prompt.toLowerCase().includes('work order') || prompt.toLowerCase().includes('maintenance')) {
+        return 'I understand you want to work with maintenance tasks. While I\'m having connectivity issues, you can still create and manage work orders using the interface.';
+      } else if (prompt.toLowerCase().includes('create') || prompt.toLowerCase().includes('new')) {
+        return 'I can help you create new items. Please use the form fields to enter the details you mentioned.';
+      } else if (prompt.toLowerCase().includes('problem') || prompt.toLowerCase().includes('issue')) {
+        return 'I\'ve noted your concern. Please document the issue details in the work order description and assign appropriate priority level.';
+      }
+      
+      return 'I\'m currently having trouble connecting to AI services. Please continue using the manual interface.';
     } finally {
       setIsProcessingAI(false);
     }
