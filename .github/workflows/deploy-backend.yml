@@ -13,6 +13,10 @@ env:
   SERVICE_NAME: chatterfix-api
   REGION: us-central1
 
+permissions:
+  contents: read
+  deployments: write
+
 jobs:
   build-deploy:
     runs-on: ubuntu-latest

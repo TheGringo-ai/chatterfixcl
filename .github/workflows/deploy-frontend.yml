@@ -8,6 +8,10 @@ on:
     paths: [ 'src/**', 'public/**', 'package.json', '.github/workflows/deploy-frontend.yml' ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  deployments: write
+
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
@@ -23,7 +27,7 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        run: npm ci
+        run: npm install
       
       - name: Run linting
         run: npm run lint || true  # Don't fail build on lint warnings
@@ -35,7 +39,7 @@ jobs:
         run: |
           # Set environment variables for production build
           export VITE_API_BASE="${{ secrets.VITE_API_BASE }}"
-          export VITE_PUSH_PUBLIC_KEY="${{ secrets.VITE_PUSH_PUBLIC_KEY }}"
+          export VITE_PUSH_PUBLIC_KEY="${{ secrets.PUSH_VAPID_PUBLIC }}"
           export VITE_APP_VERSION="$(date +%Y%m%d-%H%M%S)-${GITHUB_SHA:0:7}"
           export VITE_ENVIRONMENT="production"
           export VITE_ENABLE_PWA="true"
@@ -77,7 +81,7 @@ jobs:
           
           # Add redirects for SPA
           cat > dist/_redirects << EOF
-          /api/* https://${{ secrets.BACKEND_DOMAIN }}/api/:splat 200
+          /api/* ${{ secrets.VITE_API_BASE }}/:splat 200
           /* /index.html 200
           EOF
       
@@ -100,7 +104,7 @@ jobs:
           # Wait for deployment to be ready
           sleep 60
           
-          SITE_URL="https://${{ secrets.NETLIFY_SITE_ID }}.netlify.app"
+          SITE_URL="https://chatterfix.netlify.app"
           echo "Verifying deployment at: $SITE_URL"
           
           # Check if site is accessible
@@ -118,7 +122,7 @@ jobs:
         uses: treosh/lighthouse-ci-action@v10
         with:
           urls: |
-            https://${{ secrets.NETLIFY_SITE_ID }}.netlify.app
+            https://chatterfix.netlify.app
           configPath: './.lighthouserc.json'
           uploadArtifacts: true
           temporaryPublicStorage: true
@@ -143,5 +147,5 @@ jobs:
               deployment_id: deployment.data.id,
               state: '${{ job.status }}' === 'success' ? 'success' : 'failure',
               description: '${{ job.status }}' === 'success' ? 'PWA deployment successful' : 'PWA deployment failed',
-              environment_url: 'https://${{ secrets.NETLIFY_SITE_ID }}.netlify.app'
+              environment_url: 'https://chatterfix.netlify.app'
             });
