@@ -4,7 +4,7 @@
  */
 
 // API Base URL from environment
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080/api';
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8080/api';
 
 // Generic API client
 class ApiClient {

@@ -38,13 +38,13 @@ jobs:
       - name: Build application
         run: |
           # Set environment variables for production build
-          export VITE_API_BASE="${{ secrets.VITE_API_BASE }}"
-          export VITE_PUSH_PUBLIC_KEY="${{ secrets.PUSH_VAPID_PUBLIC }}"
-          export VITE_APP_VERSION="$(date +%Y%m%d-%H%M%S)-${GITHUB_SHA:0:7}"
-          export VITE_ENVIRONMENT="production"
-          export VITE_ENABLE_PWA="true"
-          export VITE_ENABLE_OFFLINE="true"
-          export VITE_ENABLE_PUSH_NOTIFICATIONS="true"
+          export REACT_APP_API_BASE="${{ secrets.VITE_API_BASE }}"
+          export REACT_APP_PUSH_PUBLIC_KEY="${{ secrets.PUSH_VAPID_PUBLIC }}"
+          export REACT_APP_VERSION="$(date +%Y%m%d-%H%M%S)-${GITHUB_SHA:0:7}"
+          export REACT_APP_ENVIRONMENT="production"
+          export REACT_APP_ENABLE_PWA="true"
+          export REACT_APP_ENABLE_OFFLINE="true"
+          export REACT_APP_ENABLE_PUSH_NOTIFICATIONS="true"
           
           npm run build
       
