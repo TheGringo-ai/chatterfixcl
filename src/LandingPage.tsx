@@ -107,7 +107,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onManagerDemo, onTechnicianDe
             </div>
 
             {/* CTA Buttons */}
-            <div className="mt-8 mb-16">
+            <div className="mt-16 mb-20">
               <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-6">
                 <button
                   onClick={onManagerDemo}
@@ -126,9 +126,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onManagerDemo, onTechnicianDe
                 </button>
               </div>
               
-              <div className="text-center">
-                <p className="text-gray-600 mb-4">Choose your role to see the most relevant features:</p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <div className="text-center mt-12">
+                <p className="text-gray-600 mb-6">Choose your role to see the most relevant features:</p>
+                <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
                   <button
                     onClick={onTechnicianDemo}
                     className="bg-green-50 border border-green-200 text-green-800 hover:bg-green-100 font-medium px-6 py-3 rounded-lg transition-all duration-200 flex items-center space-x-2"
@@ -167,12 +167,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onManagerDemo, onTechnicianDe
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
             Would you like to learn more?
           </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-blue-100 mb-12 max-w-2xl mx-auto">
             Have questions about ChatterFix? Want to know how it can transform your maintenance operations? 
             Our AI agent is here to help with technical questions about equipment, SQF industry practices, 
             predictive maintenance, and more.
           </p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-8 justify-center items-center mt-4 mb-8">
             <button
               onClick={() => setShowDemoChat(true)}
               className="bg-white text-blue-600 hover:bg-gray-50 font-bold px-10 py-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-3 text-lg"
