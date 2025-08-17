@@ -42,27 +42,10 @@ jobs:
           docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:$GITHUB_SHA
           docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
       
-      - name: Run database migrations
+      - name: Initialize Firestore (if needed)
         run: |
-          # Create migration job if it doesn't exist
-          gcloud run jobs create $SERVICE_NAME-migrate \
-            --image gcr.io/$PROJECT_ID/$SERVICE_NAME:$GITHUB_SHA \
-            --region $REGION \
-            --command "alembic" \
-            --args "upgrade,head" \
-            --set-env-vars "DATABASE_URL=${{ secrets.DATABASE_URL }}" \
-            --max-retries 3 \
-            --parallelism 1 \
-            --task-count 1 \
-            || true
-          
-          # Update and execute migration
-          gcloud run jobs update $SERVICE_NAME-migrate \
-            --image gcr.io/$PROJECT_ID/$SERVICE_NAME:$GITHUB_SHA \
-            --region $REGION \
-            --set-env-vars "DATABASE_URL=${{ secrets.DATABASE_URL }}"
-          
-          gcloud run jobs execute $SERVICE_NAME-migrate --region $REGION --wait
+          echo "✅ Firestore is ready - no migrations needed!"
+          echo "Database collections will be created automatically on first use."
       
       - name: Deploy to Cloud Run
         run: |
@@ -77,7 +60,7 @@ jobs:
             --max-instances 10 \
             --concurrency 80 \
             --timeout 300 \
-            --set-env-vars "DATABASE_URL=${{ secrets.DATABASE_URL }},POOL_MIN=2,POOL_MAX=15,POOL_TIMEOUT=30,ENVIRONMENT=production,LOG_LEVEL=WARNING,VAPID_PUBLIC_KEY=${{ secrets.PUSH_VAPID_PUBLIC }},VAPID_PRIVATE_KEY=${{ secrets.PUSH_VAPID_PRIVATE }},SECRET_KEY=${{ secrets.SECRET_KEY }}"
+            --set-env-vars "ENVIRONMENT=production,LOG_LEVEL=WARNING,VAPID_PUBLIC_KEY=${{ secrets.PUSH_VAPID_PUBLIC }},VAPID_PRIVATE_KEY=${{ secrets.PUSH_VAPID_PRIVATE }},SECRET_KEY=${{ secrets.SECRET_KEY }}"
       
       - name: Verify database schema
         run: |
