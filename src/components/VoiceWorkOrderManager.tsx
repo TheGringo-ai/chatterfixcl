@@ -158,7 +158,7 @@ const VoiceWorkOrderManager: React.FC<VoiceWorkOrderManagerProps> = ({
         
       } else if (workOrder) {
         // Update existing work order
-        const updatedWorkOrder = {
+        const updatedWorkOrder: WorkOrder = {
           ...workOrder,
           notes: [
             ...(workOrder.notes || []),
@@ -282,7 +282,7 @@ const VoiceWorkOrderManager: React.FC<VoiceWorkOrderManagerProps> = ({
       
       // Add OCR result to work order notes
       if (workOrder) {
-        const updatedWorkOrder = {
+        const updatedWorkOrder: WorkOrder = {
           ...workOrder,
           notes: [
             ...(workOrder.notes || []),
