@@ -39,7 +39,8 @@
       "Bash(gcloud projects add-iam-policy-binding:*)",
       "Bash(gh run rerun:*)",
       "Bash(curl:*)",
-      "WebFetch(domain:chatterfix.netlify.app)"
+      "WebFetch(domain:chatterfix.netlify.app)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

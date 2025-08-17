@@ -158,26 +158,34 @@ const ChatterFixApp: React.FC = () => {
   const getAIResponse = async (prompt: string, context?: string): Promise<string> => {
     setIsProcessingAI(true);
     try {
-      // First try online Llama API if configured
+      // First try online Llama API (Ollama format)
       if (llamaApiUrl && llamaApiUrl !== 'http://localhost:8000') {
         try {
-          const response = await fetch(`${llamaApiUrl}/chat`, {
+          const fullPrompt = context 
+            ? `You are a maintenance assistant for CMMS (Computerized Maintenance Management System). Context: ${context}\n\nUser request: ${prompt}\n\nProvide a helpful, structured response for maintenance work.`
+            : `You are a maintenance assistant for CMMS. User request: ${prompt}\n\nProvide a helpful response for maintenance work.`;
+
+          const response = await fetch(`${llamaApiUrl}/api/generate`, {
             method: 'POST',
             headers: { 
               'Content-Type': 'application/json',
               'Accept': 'application/json'
             },
             body: JSON.stringify({ 
-              prompt: context ? `Context: ${context}\n\nUser: ${prompt}` : prompt,
-              context: context || '',
-              max_tokens: 500,
-              temperature: 0.7
+              model: 'llama3.2:3b',
+              prompt: fullPrompt,
+              stream: false,
+              options: {
+                temperature: 0.7,
+                top_p: 0.9,
+                max_tokens: 300
+              }
             }),
           });
           
           if (response.ok) {
             const data = await response.json();
-            return data.response || data.content || data.message || 'AI response received.';
+            return data.response || 'AI response received successfully.';
           }
         } catch (llamaError) {
           console.log('Llama API unavailable, trying backend:', llamaError);

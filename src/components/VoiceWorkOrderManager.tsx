@@ -24,6 +24,7 @@ const VoiceWorkOrderManager: React.FC<VoiceWorkOrderManagerProps> = ({
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [isProcessingAI, setIsProcessingAI] = useState(false);
+  const [aiProgress, setAiProgress] = useState(0);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [showOCR, setShowOCR] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -72,6 +73,13 @@ const VoiceWorkOrderManager: React.FC<VoiceWorkOrderManagerProps> = ({
     if (!command.trim()) return;
 
     setIsProcessingAI(true);
+    setAiProgress(0);
+    
+    // Progress simulation for user feedback
+    const progressInterval = setInterval(() => {
+      setAiProgress(prev => prev < 90 ? prev + 10 : prev);
+    }, 6000); // Update every 6 seconds
+    
     try {
       let prompt = '';
       let context = '';
@@ -100,7 +108,9 @@ const VoiceWorkOrderManager: React.FC<VoiceWorkOrderManagerProps> = ({
       console.error('Error processing voice command:', error);
       speakText('Sorry, I had trouble processing that command. Please try again.');
     } finally {
+      clearInterval(progressInterval);
       setIsProcessingAI(false);
+      setAiProgress(0);
     }
   };
 
@@ -355,8 +365,22 @@ const VoiceWorkOrderManager: React.FC<VoiceWorkOrderManagerProps> = ({
         
         <div className="text-center mt-4">
           <p className="text-gray-600">
-            {isProcessingAI && 'Processing your command...'}
-            {isListening && 'Listening... Tap to stop'}
+            {isProcessingAI && (
+              <div className="flex flex-col items-center space-y-3">
+                <span className="flex items-center space-x-2">
+                  <Loader className="w-4 h-4 animate-spin" />
+                  <span>Processing with Llama AI... (may take 30-60 seconds)</span>
+                </span>
+                <div className="w-64 bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-1000"
+                    style={{ width: `${aiProgress}%` }}
+                  ></div>
+                </div>
+                <span className="text-sm text-gray-500">{aiProgress}% complete</span>
+              </div>
+            )}
+            {isListening && 'Listening... Tap to stop recording'}
             {!isListening && !isProcessingAI && 'Tap to start voice command'}
           </p>
         </div>
