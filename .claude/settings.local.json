@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm test)",
+      "Bash(npm run build:*)",
+      "Bash(npm install:*)",
+      "WebSearch",
+      "Bash(touch:*)",
+      "Bash(mkdir:*)",
+      "Bash(alembic check:*)",
+      "Bash(pip install:*)",
+      "Bash(DATABASE_URL=\"postgresql://dummy:dummy@localhost/dummy\" alembic check)",
+      "Bash(python:*)",
+      "Bash(DATABASE_URL=\"postgresql://user:pass@localhost/dbname\" alembic current)",
+      "Bash(DATABASE_URL=\"postgresql+asyncpg://user:pass@localhost/dbname\" alembic current)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

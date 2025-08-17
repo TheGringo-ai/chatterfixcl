@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Settings, HelpCircle } from 'lucide-react';
 import './App.css';
 import { Toaster } from 'react-hot-toast';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Components
 import LandingPage from './LandingPage';
@@ -20,6 +21,8 @@ import TechnicianWorkOrderView from './components/TechnicianWorkOrderView';
 import WorkOrderList from './components/WorkOrder/WorkOrderList';
 import AIChat from './components/AIChat';
 import OnboardingGuide from './components/OnboardingGuide';
+import EnhancedWorkOrderDetail from './components/EnhancedWorkOrderDetail';
+import PreventiveMaintenanceManager from './components/PreventiveMaintenanceManager';
 
 // Contexts and Hooks
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -73,6 +76,7 @@ const ChatterFixApp: React.FC = () => {
   });
   const [isProcessingAI, setIsProcessingAI] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [selectedWorkOrderDetail, setSelectedWorkOrderDetail] = useState<WorkOrder | null>(null);
 
   const {
     isOnboardingActive,
@@ -316,7 +320,7 @@ const ChatterFixApp: React.FC = () => {
         <nav className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex space-x-8">
-              {['voice', 'technician', 'ocr', 'assets', 'inventory', 'documents'].map((view) => (
+              {['voice', 'technician', 'ocr', 'assets', 'inventory', 'documents', 'financials', 'preventive-maintenance'].map((view) => (
                 <button
                   key={view}
                   id={view === 'technician' ? 'technician-view-nav' : `${view}-nav`}
@@ -327,7 +331,7 @@ const ChatterFixApp: React.FC = () => {
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  {view === 'ocr' ? 'OCR Scanner' : view === 'inventory' ? 'Parts Inventory' : view === 'technician' ? 'Technician Dashboard' : view}
+                  {view === 'ocr' ? 'OCR Scanner' : view === 'inventory' ? 'Parts Inventory' : view === 'technician' ? 'Technician Dashboard' : view === 'financials' ? 'Financials & Workflow' : view === 'preventive-maintenance' ? 'PM Schedule' : view}
                 </button>
               ))}
             </div>
@@ -383,6 +387,48 @@ const ChatterFixApp: React.FC = () => {
           {currentView === 'assets' && <AssetManager onAssetSelected={(asset) => console.log('Asset selected:', asset)} />}
           {currentView === 'inventory' && <PartsInventory />}
           {currentView === 'documents' && <DocumentManager assets={assets} />}
+          {currentView === 'financials' && (
+            selectedWorkOrderDetail ? (
+              <EnhancedWorkOrderDetail
+                workOrder={selectedWorkOrderDetail}
+                onWorkOrderUpdate={handleWorkOrderUpdate}
+                onBack={() => {
+                  setSelectedWorkOrderDetail(null);
+                  setCurrentView('voice');
+                }}
+                currentUserId={user?.email || 'demo-user'}
+                getAIResponse={getAIResponse}
+              />
+            ) : (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Financial & Workflow Management</h2>
+                <p className="text-gray-600 mb-6">Select a work order to view detailed financial and workflow information.</p>
+                <div className="space-y-3">
+                  {workOrders.slice(0, 5).map((wo) => (
+                    <div
+                      key={wo.id}
+                      onClick={() => setSelectedWorkOrderDetail(wo)}
+                      className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer transition-colors"
+                    >
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h3 className="font-medium text-gray-900">{wo.title}</h3>
+                          <p className="text-sm text-gray-600">{wo.description}</p>
+                        </div>
+                        <span className="text-sm text-blue-600">View Details →</span>
+                      </div>
+                    </div>
+                  ))}
+                  {workOrders.length === 0 && (
+                    <p className="text-gray-500 text-center py-8">No work orders available. Create one using the voice interface or work order form.</p>
+                  )}
+                </div>
+              </div>
+            )
+          )}
+          {currentView === 'preventive-maintenance' && (
+            <PreventiveMaintenanceManager currentUserId={user?.email || 'demo-user'} />
+          )}
           {currentView === 'settings' && (
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Settings</h2>
@@ -406,12 +452,24 @@ const ChatterFixApp: React.FC = () => {
   );
 };
 
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <Toaster position="top-right" />
-      <ChatterFixApp />
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Toaster position="top-right" />
+        <ChatterFixApp />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 };
 

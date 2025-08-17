@@ -1,15 +1,55 @@
 {
+  "name": "ChatterFix CMMS",
   "short_name": "ChatterFix",
-  "name": "ChatterFix - AI-Powered Maintenance",
+  "description": "AI-Powered Maintenance Management System with Voice Interface",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en-US",
+  "categories": ["productivity", "business"],
   "icons": [
     {
       "src": "favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
-  "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "shortcuts": [
+    {
+      "name": "Create Work Order",
+      "short_name": "New WO",
+      "description": "Create a new work order",
+      "url": "/?action=create-work-order",
+      "icons": [{"src": "favicon.ico", "sizes": "64x64"}]
+    },
+    {
+      "name": "Voice Interface",
+      "short_name": "Voice",
+      "description": "Voice-powered maintenance assistant",
+      "url": "/?tab=voice",
+      "icons": [{"src": "favicon.ico", "sizes": "64x64"}]
+    },
+    {
+      "name": "PM Schedule",
+      "short_name": "PM",
+      "description": "View preventive maintenance schedule",
+      "url": "/?tab=preventive-maintenance",
+      "icons": [{"src": "favicon.ico", "sizes": "64x64"}]
+    }
+  ]
 }
