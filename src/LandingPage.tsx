@@ -107,7 +107,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onManagerDemo, onTechnicianDe
             </div>
 
             {/* CTA Buttons */}
-            <div className="mb-16">
+            <div className="mt-8 mb-16">
               <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-6">
                 <button
                   onClick={onManagerDemo}
