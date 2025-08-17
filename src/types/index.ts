@@ -68,7 +68,7 @@ export interface WorkOrderForm {
   requestedBy: string;
   estimatedDuration: number;
   requiredParts: string[];
-  notes: string;
+  notes: string[];
 }
 
 export interface CompanyData {
