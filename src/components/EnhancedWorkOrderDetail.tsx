@@ -31,7 +31,7 @@ const EnhancedWorkOrderDetail: React.FC<EnhancedWorkOrderDetailProps> = ({
     title: workOrder.title || '',
     description: workOrder.description || '',
     priority: workOrder.priority || 'medium',
-    notes: workOrder.notes || ''
+    notes: workOrder.notes || []
   });
 
   const handleSave = () => {
@@ -49,7 +49,7 @@ const EnhancedWorkOrderDetail: React.FC<EnhancedWorkOrderDetailProps> = ({
       title: workOrder.title || '',
       description: workOrder.description || '',
       priority: workOrder.priority || 'medium',
-      notes: workOrder.notes || ''
+      notes: workOrder.notes || []
     });
     setIsEditing(false);
   };
