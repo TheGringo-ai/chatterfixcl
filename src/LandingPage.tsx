@@ -543,7 +543,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onManagerDemo, onTechnicianDe
               onClick={onManagerDemo}
               className="bg-white text-blue-600 hover:bg-gray-50 font-bold px-12 py-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-xl"
             >
-              🚀 Try Live Demo Now - Free
+              🚀 Try Live Demo Now - Free!
             </button>
           </div>
 
