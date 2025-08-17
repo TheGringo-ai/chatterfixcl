@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, CostType, WorkOrderFinancials, FinancialSummary, CostEntry } from "../api/client";
 
-export { CostType } from "../api/client";
+// Re-export types
+export type { CostType } from "../api/client";
 
 // Financial Hooks
 export function useWorkOrderFinancials(workOrderId: string) {

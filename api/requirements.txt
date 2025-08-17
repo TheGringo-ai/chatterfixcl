@@ -13,13 +13,13 @@ psycopg2-binary>=2.9.9
 pydantic>=2.5.0
 pydantic-settings>=2.1.0
 
-# AI/ML Libraries
-ollama>=0.1.7
+# AI/ML Libraries (optional - commented out for now)
+# ollama>=0.1.7
 
-# Document Processing
-PyPDF2>=3.0.1
-python-docx>=1.1.0
-Pillow>=10.1.0
+# Document Processing (optional - commented out for now)
+# PyPDF2>=3.0.1
+# python-docx>=1.1.0
+# Pillow>=10.1.0
 
 # Google Cloud (Optional)
 google-cloud-storage>=2.10.0
