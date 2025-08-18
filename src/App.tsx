@@ -24,6 +24,7 @@ import AIChat from './components/AIChat';
 import OnboardingGuide from './components/OnboardingGuide';
 import EnhancedWorkOrderDetail from './components/EnhancedWorkOrderDetail';
 import PreventiveMaintenanceManager from './components/PreventiveMaintenanceManager';
+import PredictiveMaintenanceEngine from './components/PredictiveMaintenanceEngine';
 
 // Contexts and Hooks
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -374,7 +375,7 @@ const ChatterFixApp: React.FC = () => {
         <nav className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex space-x-8">
-              {['voice', 'work-orders', 'technician', 'ocr', 'assets', 'inventory', 'documents', 'financials', 'preventive-maintenance'].map((view) => (
+              {['voice', 'work-orders', 'technician', 'ocr', 'assets', 'inventory', 'documents', 'financials', 'preventive-maintenance', 'predictive-ai'].map((view) => (
                 <button
                   key={view}
                   id={view === 'technician' ? 'technician-view-nav' : `${view}-nav`}
@@ -390,7 +391,8 @@ const ChatterFixApp: React.FC = () => {
                    view === 'technician' ? 'Technician Dashboard' : 
                    view === 'work-orders' ? 'Work Orders' :
                    view === 'financials' ? 'Financials & Workflow' : 
-                   view === 'preventive-maintenance' ? 'PM Schedule' : view}
+                   view === 'preventive-maintenance' ? 'PM Schedule' : 
+                   view === 'predictive-ai' ? 'AI Predictions' : view}
                 </button>
               ))}
             </div>
@@ -489,6 +491,9 @@ const ChatterFixApp: React.FC = () => {
           )}
           {currentView === 'preventive-maintenance' && (
             <PreventiveMaintenanceManager currentUserId={user?.email || 'demo-user'} />
+          )}
+          {currentView === 'predictive-ai' && (
+            <PredictiveMaintenanceEngine getAIResponse={getAIResponse} />
           )}
           {currentView === 'settings' && (
             <div className="bg-white rounded-lg shadow-md p-6">
