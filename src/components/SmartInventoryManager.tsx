@@ -3,8 +3,9 @@ import {
   Package, TrendingUp, AlertTriangle, CheckCircle, 
   ShoppingCart, Clock, DollarSign, Truck, 
   Brain, Zap, BarChart3, Settings, Plus,
-  Eye, Edit, Calendar, Target, Gauge
+  Eye, Edit, Calendar, Target, Gauge, QrCode, Scan
 } from 'lucide-react';
+import BarcodeScanner from './BarcodeScanner';
 
 interface InventoryItem {
   id: string;
@@ -57,6 +58,7 @@ const SmartInventoryManager: React.FC<SmartInventoryManagerProps> = ({ getAIResp
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
   const [autoOrderingEnabled, setAutoOrderingEnabled] = useState(true);
   const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
 
   // Mock inventory data - in real implementation from database
   const mockInventory: InventoryItem[] = [
@@ -399,6 +401,13 @@ const SmartInventoryManager: React.FC<SmartInventoryManagerProps> = ({ getAIResp
                 </>
               )}
             </button>
+            <button
+              onClick={() => setShowBarcodeScanner(true)}
+              className="bg-white text-green-600 px-6 py-3 rounded-lg font-medium hover:bg-green-50 flex items-center"
+            >
+              <QrCode className="w-5 h-5 mr-2" />
+              Scan Inventory
+            </button>
           </div>
         </div>
         
@@ -635,6 +644,28 @@ const SmartInventoryManager: React.FC<SmartInventoryManagerProps> = ({ getAIResp
           </table>
         </div>
       </div>
+
+      {/* Barcode Scanner Modal */}
+      {showBarcodeScanner && (
+        <BarcodeScanner
+          mode="inventory"
+          onScanResult={(result) => {
+            console.log('Inventory barcode scan result:', result);
+            if (result.type === 'inventory' && result.data) {
+              // Find and highlight the scanned inventory item
+              const scannedItem = inventory.find(item => 
+                item.name.toLowerCase().includes(result.data.name.toLowerCase()) ||
+                item.id === result.data.id
+              );
+              if (scannedItem) {
+                setSelectedItem(scannedItem);
+              }
+            }
+            setShowBarcodeScanner(false);
+          }}
+          onClose={() => setShowBarcodeScanner(false)}
+        />
+      )}
     </div>
   );
 };

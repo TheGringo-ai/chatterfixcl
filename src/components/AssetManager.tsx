@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { 
   Plus, Search, Edit, Eye, Wrench, AlertTriangle, BarChart3,
   Activity, Clock, DollarSign, CheckCircle, XCircle, AlertCircle,
-  TrendingUp, Package, Users, MapPin, PlayCircle
+  TrendingUp, Package, Users, MapPin, PlayCircle, QrCode, Scan
 } from 'lucide-react';
+import AssetHierarchyManager from './AssetHierarchyManager';
+import BarcodeScanner from './BarcodeScanner';
 
 interface Asset {
   id: string;
@@ -43,8 +45,9 @@ const AssetManager: React.FC<AssetManagerProps> = ({ onAssetSelected }) => {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [kpiData, setKpiData] = useState<KPIData | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'assets' | 'workorders'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'assets' | 'workorders' | 'hierarchy'>('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
 
   useEffect(() => {
     // Load mock data
@@ -310,6 +313,13 @@ const AssetManager: React.FC<AssetManagerProps> = ({ onAssetSelected }) => {
             <Plus className="w-4 h-4 mr-2" />
             New Work Order
           </button>
+          <button 
+            onClick={() => setShowBarcodeScanner(true)}
+            className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            <QrCode className="w-4 h-4 mr-2" />
+            Scan Barcode
+          </button>
         </div>
       </div>
 
@@ -318,6 +328,7 @@ const AssetManager: React.FC<AssetManagerProps> = ({ onAssetSelected }) => {
         {[
           { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
           { id: 'assets', label: 'Assets', icon: Package },
+          { id: 'hierarchy', label: 'Asset Tree', icon: MapPin },
           { id: 'workorders', label: 'Work Orders', icon: Wrench }
         ].map(({ id, label, icon: Icon }) => (
           <button
@@ -476,6 +487,59 @@ const AssetManager: React.FC<AssetManagerProps> = ({ onAssetSelected }) => {
             </table>
           </div>
         </div>
+      )}
+
+      {activeTab === 'hierarchy' && (
+        <div className="h-96">
+          <AssetHierarchyManager 
+            onAssetSelected={(asset) => {
+              console.log('Asset selected from hierarchy:', asset);
+              if (onAssetSelected) {
+                // Convert hierarchy asset to legacy format
+                const legacyAsset = {
+                  id: asset.id,
+                  name: asset.name,
+                  description: asset.description || '',
+                  location: asset.location,
+                  status: asset.status as 'operational' | 'maintenance' | 'repair' | 'decommissioned',
+                  priority: asset.criticality as 'low' | 'medium' | 'high' | 'critical',
+                  currentValue: asset.metadata.currentValue || 0,
+                  assignedTo: 'Unassigned'
+                };
+                onAssetSelected(legacyAsset);
+              }
+            }}
+          />
+        </div>
+      )}
+
+      {/* Barcode Scanner Modal */}
+      {showBarcodeScanner && (
+        <BarcodeScanner
+          mode="asset"
+          onScanResult={(result) => {
+            console.log('Barcode scan result:', result);
+            if (result.type === 'asset' && result.data) {
+              // Auto-navigate to the scanned asset
+              if (onAssetSelected) {
+                const legacyAsset = {
+                  id: result.data.id,
+                  name: result.data.name,
+                  description: result.data.description || '',
+                  location: result.data.location,
+                  status: result.data.status as 'operational' | 'maintenance' | 'repair' | 'decommissioned',
+                  priority: result.data.criticality as 'low' | 'medium' | 'high' | 'critical',
+                  currentValue: result.data.metadata?.currentValue || 0,
+                  assignedTo: 'Unassigned'
+                };
+                onAssetSelected(legacyAsset);
+              }
+              setActiveTab('hierarchy'); // Switch to hierarchy view to show the asset
+            }
+            setShowBarcodeScanner(false);
+          }}
+          onClose={() => setShowBarcodeScanner(false)}
+        />
       )}
     </div>
   );
