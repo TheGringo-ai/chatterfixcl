@@ -182,7 +182,7 @@ export function usePMScheduleSync(startDate?: string, endDate?: string) {
   }`;
   
   return useSyncAwareQuery(
-    ['pm_schedule', startDate, endDate],
+    ['pm_schedule', startDate || 'all', endDate || 'all'],
     endpoint,
     { offlineFirst: true }
   );
