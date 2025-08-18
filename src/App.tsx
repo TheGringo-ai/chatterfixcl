@@ -25,6 +25,8 @@ import OnboardingGuide from './components/OnboardingGuide';
 import EnhancedWorkOrderDetail from './components/EnhancedWorkOrderDetail';
 import PreventiveMaintenanceManager from './components/PreventiveMaintenanceManager';
 import PredictiveMaintenanceEngine from './components/PredictiveMaintenanceEngine';
+import SmartInventoryManager from './components/SmartInventoryManager';
+import NoCodeWorkflowEngine from './components/NoCodeWorkflowEngine';
 
 // Contexts and Hooks
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -375,7 +377,7 @@ const ChatterFixApp: React.FC = () => {
         <nav className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex space-x-8">
-              {['voice', 'work-orders', 'technician', 'ocr', 'assets', 'inventory', 'documents', 'financials', 'preventive-maintenance', 'predictive-ai'].map((view) => (
+              {['voice', 'work-orders', 'technician', 'ocr', 'assets', 'inventory', 'documents', 'financials', 'preventive-maintenance', 'predictive-ai', 'smart-inventory', 'workflow-automation'].map((view) => (
                 <button
                   key={view}
                   id={view === 'technician' ? 'technician-view-nav' : `${view}-nav`}
@@ -392,7 +394,9 @@ const ChatterFixApp: React.FC = () => {
                    view === 'work-orders' ? 'Work Orders' :
                    view === 'financials' ? 'Financials & Workflow' : 
                    view === 'preventive-maintenance' ? 'PM Schedule' : 
-                   view === 'predictive-ai' ? 'AI Predictions' : view}
+                   view === 'predictive-ai' ? 'AI Predictions' : 
+                   view === 'smart-inventory' ? 'Smart Ordering' : 
+                   view === 'workflow-automation' ? 'No-Code Rules' : view}
                 </button>
               ))}
             </div>
@@ -494,6 +498,12 @@ const ChatterFixApp: React.FC = () => {
           )}
           {currentView === 'predictive-ai' && (
             <PredictiveMaintenanceEngine getAIResponse={getAIResponse} />
+          )}
+          {currentView === 'smart-inventory' && (
+            <SmartInventoryManager getAIResponse={getAIResponse} />
+          )}
+          {currentView === 'workflow-automation' && (
+            <NoCodeWorkflowEngine getAIResponse={getAIResponse} />
           )}
           {currentView === 'settings' && (
             <div className="bg-white rounded-lg shadow-md p-6">
