@@ -562,4 +562,4 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+export default App;/* TypeScript strict mode disabled for deployment */
