@@ -143,7 +143,7 @@ class EnhancedSyncManager {
       
     } catch (error) {
       console.error('Full sync failed:', error);
-      this.dispatchSyncEvent('sync_error', { error: error.message });
+      this.dispatchSyncEvent('sync_error', { error: error instanceof Error ? error.message : String(error) });
       return false;
     } finally {
       this.syncInProgress = false;
