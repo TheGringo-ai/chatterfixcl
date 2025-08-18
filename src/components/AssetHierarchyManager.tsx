@@ -370,7 +370,7 @@ const AssetHierarchyManager: React.FC<AssetHierarchyManagerProps> = ({ onAssetSe
                 {node.criticality}
               </span>
               {node.metadata.barcode && (
-                <QrCode className="w-4 h-4 ml-2 text-gray-400" title={`Barcode: ${node.metadata.barcode}`} />
+                <QrCode className="w-4 h-4 ml-2 text-gray-400" />
               )}
             </div>
             <div className="text-sm text-gray-500 truncate">{node.location}</div>

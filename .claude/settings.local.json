@@ -41,7 +41,9 @@
       "Bash(curl:*)",
       "WebFetch(domain:chatterfix.netlify.app)",
       "Bash(node:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run:*)"
     ],
     "deny": [],
     "ask": []
