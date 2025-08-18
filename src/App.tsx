@@ -155,18 +155,23 @@ const ChatterFixApp: React.FC = () => {
   }, [assets, inventory, workOrders, companyInfo, isAuthenticated, isLoadingData, handleError]);
 
   // Support multiple AI endpoints: local Llama, online Llama, or fallback
-  const llamaApiUrl = process.env.REACT_APP_LLAMA_API_URL || 'http://localhost:8000';
+  const llamaApiUrl = process.env.REACT_APP_LLAMA_API_URL || 'https://chatterfix-llama-api-650169261019.us-central1.run.app';
   const backendApiUrl = process.env.REACT_APP_API_BASE || 'https://chatterfix-api-650169261019.us-central1.run.app';
 
   const getAIResponse = async (prompt: string, context?: string): Promise<string> => {
     setIsProcessingAI(true);
     try {
       // First try online Llama API (Ollama format)
-      if (llamaApiUrl && llamaApiUrl !== 'http://localhost:8000') {
+      console.log('Attempting Llama API connection to:', llamaApiUrl);
+      if (llamaApiUrl) {
         try {
           const fullPrompt = context 
             ? `You are a maintenance assistant for CMMS (Computerized Maintenance Management System). Context: ${context}\n\nUser request: ${prompt}\n\nProvide a helpful, structured response for maintenance work.`
             : `You are a maintenance assistant for CMMS. User request: ${prompt}\n\nProvide a helpful response for maintenance work.`;
+
+          // Create AbortController for timeout handling
+          const abortController = new AbortController();
+          const timeoutId = setTimeout(() => abortController.abort(), 90000); // 90 second timeout
 
           const response = await fetch(`${llamaApiUrl}/api/generate`, {
             method: 'POST',
@@ -184,14 +189,22 @@ const ChatterFixApp: React.FC = () => {
                 max_tokens: 300
               }
             }),
+            signal: abortController.signal
           });
+
+          clearTimeout(timeoutId);
           
+          console.log('Llama API response status:', response.status);
           if (response.ok) {
             const data = await response.json();
+            console.log('Llama API success:', data);
             return data.response || 'AI response received successfully.';
+          } else {
+            const errorText = await response.text();
+            console.warn('Llama API error:', response.status, errorText);
           }
         } catch (llamaError) {
-          console.log('Llama API unavailable, trying backend:', llamaError);
+          console.error('Llama API connection failed:', llamaError);
         }
       }
 
