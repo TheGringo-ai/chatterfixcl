@@ -53,7 +53,7 @@ const VoiceWorkOrderManager: React.FC<VoiceWorkOrderManagerProps> = ({
       recognitionRef.current.interimResults = true;
       recognitionRef.current.lang = 'en-US';
 
-      recognitionRef.current.onresult = (event) => {
+      recognitionRef.current.onresult = (event: any) => {
         let finalTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
           if (event.results[i].isFinal) {
@@ -65,7 +65,7 @@ const VoiceWorkOrderManager: React.FC<VoiceWorkOrderManagerProps> = ({
         }
       };
 
-      recognitionRef.current.onerror = (event) => {
+      recognitionRef.current.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
         setIsListening(false);
       };
