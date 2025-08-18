@@ -107,8 +107,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onManagerDemo, onTechnicianDe
             </div>
 
             {/* CTA Buttons */}
-            <div className="mt-40 mb-48">
-              <div className="flex flex-col sm:flex-row gap-8 justify-center items-center mb-12">
+            <div className="mt-12 md:mt-16 lg:mt-20 mb-12">
+              <div className="flex flex-col sm:flex-row gap-8 justify-center items-center">
                 <button
                   onClick={onManagerDemo}
                   className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-10 py-5 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-3 text-lg"
@@ -126,7 +126,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onManagerDemo, onTechnicianDe
                 </button>
               </div>
               
-              <div className="text-center mt-32">
+              <div className="text-center mt-8">
                 <p className="text-gray-600 mb-6">Choose your role to see the most relevant features:</p>
                 <div className="flex flex-col sm:flex-row gap-8 justify-center items-center">
                   <button
