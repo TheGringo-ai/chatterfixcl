@@ -107,7 +107,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onManagerDemo, onTechnicianDe
             </div>
 
             {/* CTA Buttons */}
-            <div className="mt-24 mb-32">
+            <div className="mt-40 mb-48">
               <div className="flex flex-col sm:flex-row gap-8 justify-center items-center mb-12">
                 <button
                   onClick={onManagerDemo}
@@ -126,7 +126,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onManagerDemo, onTechnicianDe
                 </button>
               </div>
               
-              <div className="text-center mt-20">
+              <div className="text-center mt-32">
                 <p className="text-gray-600 mb-6">Choose your role to see the most relevant features:</p>
                 <div className="flex flex-col sm:flex-row gap-8 justify-center items-center">
                   <button
@@ -172,7 +172,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onManagerDemo, onTechnicianDe
             Our AI agent is here to help with technical questions about equipment, SQF industry practices, 
             predictive maintenance, and more.
           </p>
-          <div className="flex flex-col sm:flex-row gap-8 justify-center items-center mt-12 mb-16">
+          <div className="flex flex-col sm:flex-row gap-8 justify-center items-center mt-24 mb-32">
             <button
               onClick={() => setShowDemoChat(true)}
               className="bg-white text-blue-600 hover:bg-gray-50 font-bold px-10 py-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center space-x-3 text-lg"

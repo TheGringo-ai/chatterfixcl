@@ -71,7 +71,7 @@ const PredictiveMaintenanceEngine: React.FC<PredictiveMaintenanceEngineProps> = 
       sensors: {
         vibration: 2.8,
         temperature: 68,
-        pressure: null,
+        pressure: undefined,
         runtime: 12450,
         efficiency: 92
       },
