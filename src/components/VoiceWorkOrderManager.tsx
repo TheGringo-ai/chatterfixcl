@@ -6,6 +6,14 @@ import {
 } from 'lucide-react';
 import { WorkOrder } from '../types';
 
+// Type declarations for Web Speech API
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
+
 interface VoiceWorkOrderManagerProps {
   workOrder?: WorkOrder;
   onWorkOrderUpdate: (workOrder: WorkOrder) => void;
@@ -31,7 +39,7 @@ const VoiceWorkOrderManager: React.FC<VoiceWorkOrderManagerProps> = ({
   const [isProcessingOCR, setIsProcessingOCR] = useState(false);
   const [ocrResults, setOcrResults] = useState<string>('');
   
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
   const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
