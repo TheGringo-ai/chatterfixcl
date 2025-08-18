@@ -40,7 +40,8 @@
       "Bash(gh run rerun:*)",
       "Bash(curl:*)",
       "WebFetch(domain:chatterfix.netlify.app)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

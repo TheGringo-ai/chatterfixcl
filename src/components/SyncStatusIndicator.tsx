@@ -164,7 +164,7 @@ const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({
                     <span className="text-gray-600 capitalize">
                       {table.replace('_', ' ')}
                     </span>
-                    <span className="font-medium">{count}</span>
+                    <span className="font-medium">{String(count)}</span>
                   </div>
                 ))}
               </div>
