@@ -205,7 +205,7 @@ class EnhancedSyncManager {
   private async pullServerChanges(): Promise<void> {
     try {
       const since = this.lastSyncTimestamp?.toISOString();
-      const response = await api.get(`/sync/changes/${this.clientId}${since ? `?since=${since}` : ''}`);
+      const response = await api.get(`/sync/changes/${this.clientId}${since ? `?since=${since}` : ''}`) as any;
       
       if (response.changes && response.changes.length > 0) {
         console.log(`Applying ${response.changes.length} server changes`);
